@@ -10,8 +10,6 @@
 - 打开cmder
 - git config --global http.proxy "localhost:1080"
 
-
-
 ### linux机器上有包，pycharm远程连接，包却找不到
 
 ##### 问题描述：编译了一个包，名叫"pointnet2_3DSSD_cuda"。用Mobaxterm连接远程服务器，进入相应的虚拟环境，可以导入。但是用pycharm远程连接，运行时却报错，找不到相应的模块。
@@ -22,13 +20,13 @@
 
 pycharm远程部署后，会把远程的library拷贝一份到本地，于是在本地能看到，如图所示：
 
-![image-20210625130627606](C:\Users\91066\AppData\Roaming\Typora\typora-user-images\image-20210625130627606.png)
+![image-20210625130627606](D:\code\problemMD\img\image-20210625130627606.png)
 
 ##### python setup.py develop和install的区别：
 
 （猜想）develop不会将包安装进anaconda的库，直接放在源代码的文件夹里，install会放到anaconda的库里。develop的如图：
 
-![image-20210625131209500](C:\Users\91066\AppData\Roaming\Typora\typora-user-images\image-20210625131209500.png)
+![image-20210625131209500](D:\code\problemMD\img\image-20210625131209500.png)
 
 解决方法
 
@@ -45,14 +43,14 @@ pycharm远程部署后，会把远程的library拷贝一份到本地，于是在
 
 - ##### 将路径添加到远程库
 
-![f454d2182fd1311e4cd3649e935ba06e.png](https://img-blog.csdnimg.cn/img_convert/f454d2182fd1311e4cd3649e935ba06e.png)
+![f454d2182fd1311e4cd3649e935ba06e.png](img/f454d2182fd1311e4cd3649e935ba06e.png)
 
-![6191401d40dc0dfaab2cfa390dcb87da.png](https://img-blog.csdnimg.cn/img_convert/6191401d40dc0dfaab2cfa390dcb87da.png)
+![6191401d40dc0dfaab2cfa390dcb87da.png](img/6191401d40dc0dfaab2cfa390dcb87da.png)
 
-![4e0cd824b57ed0ee4a41d30c5ff0e83f.png](https://img-blog.csdnimg.cn/img_convert/4e0cd824b57ed0ee4a41d30c5ff0e83f.png)
+![4e0cd824b57ed0ee4a41d30c5ff0e83f.png](img/4e0cd824b57ed0ee4a41d30c5ff0e83f.png)
 
 
 
-![2563b2c424d49c835a8f45f55f784f86.png](https://img-blog.csdnimg.cn/img_convert/2563b2c424d49c835a8f45f55f784f86.png)
+![2563b2c424d49c835a8f45f55f784f86.png](img/2563b2c424d49c835a8f45f55f784f86.png)
 
 ##### 参考文献：https://blog.csdn.net/weixin_35922953/article/details/112496023?utm_medium=distribute.pc_relevant.none-task-blog-baidujs_title-1&spm=1001.2101.3001.4242
