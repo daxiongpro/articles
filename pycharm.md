@@ -20,13 +20,13 @@
 
 pycharm远程部署后，会把远程的library拷贝一份到本地，于是在本地能看到，如图所示：
 
-![image-20210625130627606](./img\image-20210625130627606.png)
+![image-20210625130627606](img/image-20210625130627606.png)
 
 ##### python setup.py develop和install的区别：
 
 （猜想）develop不会将包安装进anaconda的库，直接放在源代码的文件夹里，install会放到anaconda的库里。develop的如图：
 
-![image-20210625131209500](./img\image-20210625131209500.png)
+![image-20210625131209500](img/image-20210625131209500.png)
 
 解决方法
 
