@@ -42,13 +42,13 @@ pycharm远程部署后，会把远程的library拷贝一份到本地，于是在
   ```
 - ##### 将路径添加到远程库
 
-![f454d2182fd1311e4cd3649e935ba06e.png](img/f454d2182fd1311e4cd3649e935ba06e.png)
+![f454d2182fd1311e4cd3649e935ba06e](../img/f454d2182fd1311e4cd3649e935ba06e.png)
 
-![6191401d40dc0dfaab2cfa390dcb87da.png](img/6191401d40dc0dfaab2cfa390dcb87da.png)
+![6191401d40dc0dfaab2cfa390dcb87da.png](../img/6191401d40dc0dfaab2cfa390dcb87da.png)
 
-![4e0cd824b57ed0ee4a41d30c5ff0e83f.png](img/4e0cd824b57ed0ee4a41d30c5ff0e83f.png)
+![4e0cd824b57ed0ee4a41d30c5ff0e83f.png](../img/4e0cd824b57ed0ee4a41d30c5ff0e83f.png)
 
-![2563b2c424d49c835a8f45f55f784f86.png](img/2563b2c424d49c835a8f45f55f784f86.png)
+![2563b2c424d49c835a8f45f55f784f86.png](../img/2563b2c424d49c835a8f45f55f784f86.png)
 
 ##### 参考文献：https://blog.csdn.net/weixin_35922953/article/details/112496023?utm_medium=distribute.pc_relevant.none-task-blog-baidujs_title-1&spm=1001.2101.3001.4242
 
