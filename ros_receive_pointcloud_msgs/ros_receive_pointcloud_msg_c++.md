@@ -2,6 +2,8 @@
 
 ros 通过 rosbag 发布 topic，如何用 C++ 代码对消息进行接收？
 
+本文使用 ros2 foxy 版本。
+
 ```cpp
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -35,7 +37,6 @@ int main(int argc, char **argv) {
   return 0;
 }
 ```
-
 
 上述代码中，首先进入 main 函数，创建 node 指针的时候，进入 PointCloudNode 的构造函数。
 
