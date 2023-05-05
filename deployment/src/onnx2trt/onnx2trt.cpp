@@ -11,6 +11,7 @@ using namespace nvinfer1;
 using namespace nvonnxparser;
 using namespace sample;
 
+Logger logger;
 
 void _serialize_engine(ICudaEngine* engine)
 {
@@ -20,12 +21,45 @@ void _serialize_engine(ICudaEngine* engine)
   // f << modelStream->data();
   f.write(reinterpret_cast<const char*>(modelStream->data()), modelStream->size());
   f.close();
+  modelStream->destroy();
 }
 
+ICudaEngine* _deserialize_engine()
+{
+  IRuntime* runtime = createInferRuntime(logger);
+  ICudaEngine* engine = nullptr;
+
+  // 读取文件
+  ifstream file("model.engine", std::ios::binary);
+  if (file.good()) {
+      // 获取文件大小
+      file.seekg(0, file.end);
+      size_t size = file.tellg();
+      file.seekg(0, file.beg);
+
+      // 分配内存
+      vector<char> trtModelStream(size);
+      assert(trtModelStream.data());
+
+      // 读取文件内容
+      file.read(trtModelStream.data(), size);
+      file.close();
+
+      // 反序列化引擎
+      engine = runtime->deserializeCudaEngine(trtModelStream.data(), size, nullptr);
+  }
+  
+  // 销毁不需要的资源
+  runtime->destroy();
+
+  // 返回引擎
+  return engine;
+
+}
 
 int main(int argc, char** argv) {
   // Create builder 
-  Logger logger;
+  
   IBuilder* builder = createInferBuilder(logger);
   const auto explicitBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
   IBuilderConfig* config = builder->createBuilderConfig(); 
@@ -40,11 +74,16 @@ int main(int argc, char** argv) {
   // Build engine
   builder->setMaxBatchSize(1);
   config->setMaxWorkspaceSize(1 << 30);  // 1GB
-  ICudaEngine* engine = builder->buildEngineWithConfig(*network, *config);
-
-  _serialize_engine(engine);
+  ICudaEngine* engine1 = builder->buildEngineWithConfig(*network, *config);
   
-  engine->destroy();
+  _serialize_engine(engine1);
+
+  ICudaEngine* engine2 = _deserialize_engine();
+  IExecutionContext* context = engine2->createExecutionContext();
+  
+  context->destroy();
+  engine2->destroy();
+  engine1->destroy();
   parser->destroy();
   network->destroy();
   config->destroy();
