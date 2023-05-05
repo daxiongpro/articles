@@ -5,7 +5,6 @@
 #include <NvOnnxParser.h>
 #include <logger.h>
 
-
 using namespace std;
 using namespace nvinfer1;
 using namespace nvonnxparser;
@@ -13,6 +12,7 @@ using namespace sample;
 
 Logger logger;
 
+// 将引擎序列化为二进制流并保存为文件
 void _serialize_engine(ICudaEngine* engine)
 {
   IHostMemory* modelStream{ nullptr }; 
@@ -24,6 +24,7 @@ void _serialize_engine(ICudaEngine* engine)
   modelStream->destroy();
 }
 
+// 从文件中读取序列化后的引擎并反序列化
 ICudaEngine* _deserialize_engine()
 {
   IRuntime* runtime = createInferRuntime(logger);
@@ -54,33 +55,33 @@ ICudaEngine* _deserialize_engine()
 
   // 返回引擎
   return engine;
-
 }
 
 int main(int argc, char** argv) {
-  // Create builder 
-  
+  // 创建构建器
   IBuilder* builder = createInferBuilder(logger);
   const auto explicitBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
   IBuilderConfig* config = builder->createBuilderConfig(); 
   
-  // Create model to populate the network 
+  // 创建网络模型
   INetworkDefinition* network = builder->createNetworkV2(explicitBatch);
 
-  // Parse ONNX file 
+  // 解析ONNX模型
   nvonnxparser::IParser* parser = nvonnxparser::createParser(*network, logger);
   bool parser_status = parser->parseFromFile("model.onnx", static_cast<int>(ILogger::Severity::kWARNING));
 
-  // Build engine
+  // 构建引擎
   builder->setMaxBatchSize(1);
   config->setMaxWorkspaceSize(1 << 30);  // 1GB
   ICudaEngine* engine1 = builder->buildEngineWithConfig(*network, *config);
   
   _serialize_engine(engine1);
 
+  // 反序列化引擎并创建执行上下文
   ICudaEngine* engine2 = _deserialize_engine();
   IExecutionContext* context = engine2->createExecutionContext();
   
+  // 销毁不需要的资源
   context->destroy();
   engine2->destroy();
   engine1->destroy();
