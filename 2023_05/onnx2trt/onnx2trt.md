@@ -229,3 +229,7 @@ int main(int argc, char** argv) {
 ## 总结
 
 通过本文学习，了解如何将 onnx 模型转换成 TensorRT 引擎，并序列化以及反序列化。另外。nvinfer1 的五个类：`IBuilder` `IBuilderConfig` `INetworkDefinition` `IParser`  `ICudaEngine` 在创建的时候，可以使用智能指针，来避免内存泄漏。
+
+# 日期
+
+2023/05/05：本文创作
