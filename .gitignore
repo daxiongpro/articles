@@ -1,3 +1,6 @@
 .idea/
 .vscode/
 build/
+*.png
+*.pth
+*.onnx
