@@ -5,28 +5,23 @@
 #include <NvOnnxParser.h>
 #include <logger.h>
 
-#include <cstring>
 
 using namespace std;
 using namespace nvinfer1;
 using namespace nvonnxparser;
 using namespace sample;
 
-bool _serialize_engine(ICudaEngine* engine)
+
+void _serialize_engine(ICudaEngine* engine)
 {
-
-  IHostMemory *modelStream = engine->serialize();
-  string serialize_str;
-  ofstream p;
-  serialize_str.resize(modelStream->size());
-  memcpy((void *)serialize_str.data(), modelStream->data(), modelStream->size());
-
-  p.open("model.engine");
-  p << serialize_str;
-  p.close();
-  return true;
-
+  IHostMemory* modelStream{ nullptr }; 
+  modelStream = engine->serialize(); 
+  ofstream f("model.engine", ios::binary); 
+  // f << modelStream->data();
+  f.write(reinterpret_cast<const char*>(modelStream->data()), modelStream->size());
+  f.close();
 }
+
 
 int main(int argc, char** argv) {
   // Create builder 
@@ -44,8 +39,6 @@ int main(int argc, char** argv) {
 
   // Build engine
   builder->setMaxBatchSize(1);
-  // builder->setMaxWorkspaceSize(1 << 30);  // 1GB
-  // ICudaEngine* engine = builder->buildCudaEngine(*network);
   config->setMaxWorkspaceSize(1 << 30);  // 1GB
   ICudaEngine* engine = builder->buildEngineWithConfig(*network, *config);
 
