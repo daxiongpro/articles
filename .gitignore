@@ -4,3 +4,4 @@ build/
 *.png
 *.pth
 *.onnx
+*.engine
