@@ -11,3 +11,8 @@
 四月
 
 * [ros2 接收点云消息(c++)](2023_04/ros_receive_pointcloud_msgs/ros_receive_pointcloud_msg_c++.md)
+
+更早
+
+* [Pycharm使用ssh远程python环境并在本地可视化open3d](earlier/linux/ssh远程环境本地可视化.md)
+* [基于Ubuntu20.04的远程桌面安装](earlier/linux/基于Ubuntu20.04的远程桌面安装.md)
