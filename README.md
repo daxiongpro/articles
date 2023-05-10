@@ -6,6 +6,7 @@
 
 五月
 
+* [open3d 显示 pointcloud 和 bbox](2023_05/show_pointcloud/show_pointcloud_and_bbox.md)
 * [使用 python 解析 pcd 文件](2023_05/read_pcd_file/read_pcd_file.md)
 * [onnx 转 tensorrt 序列化 + 反序列化 (C++)](2023_05/onnx2trt/onnx2trt.md)
 
