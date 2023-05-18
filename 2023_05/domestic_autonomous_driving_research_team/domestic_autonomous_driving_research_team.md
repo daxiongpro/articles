@@ -15,7 +15,7 @@ occupancy networks 研究论文
 | **OccFormer**   | arXiv     | 鉴智机器人                                                                         | Yunpeng Zhang                                          | yunpengzhang97@gmail.com                                                                                      | 2023                                            |
 | OpenOccupancy         | arXiv     | 中国科学院自动化研究所、<br />鉴智机器人、<br />中国科学院大学、<br />清华大学     | Xingang Wang<br />Zheng Zhu                            | xingang.wang@ia.ac.cn<br />zhengzhu@ieee.org                                                                  | 2023                                            |
 | SimpleOccupancy       | arXiv     | 东京大学、<br />中国科学院深圳先进技术研究院、<br />中国科学院、<br />华南理工大学 | Gan, Wanshui<br />Mo, Ningkai<br />Hongbin<br />Yokoya | wanshuigan@gmail.com<br />nk.mo19941001@gmail.com<br />hongbinxu1013@gmail.com<br />yokoya@k.u − tokyo.ac.jp | 2023                                            |
-| StereoVoxelNet        | IEEE      | 东北大学                                                                           | li.hongyu                                              | li.hongyu1@northeastern.edu                                                                                   | 2023                                            |
+| StereoVoxelNet        | IEEE      | 东北大学（美国）                                                                   | 李鸿宇                                                 | li.hongyu1@northeastern.edu                                                                                   | 2023                                            |
 
 ## 参考文献
 
