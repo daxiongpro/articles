@@ -6,6 +6,7 @@
 
 五月
 
+* [使用 vscode 调试代码](2023_05/vscode_debug/vscode_debug.md)
 * [国内外自动驾驶研究团队收集资料](2023_05/domestic_autonomous_driving_research_team/domestic_autonomous_driving_research_team.md)
 * [open3d 显示 pointcloud 和 bbox](2023_05/show_pointcloud/show_pointcloud_and_bbox.md)
 * [使用 python 解析 pcd 文件](2023_05/read_pcd_file/read_pcd_file.md)
