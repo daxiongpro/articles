@@ -1,6 +1,6 @@
 # 使用 mmdet3d 框架训练自定义数据集
 
-mmdet3d 框架是商汤的 3D 目标检测工具箱，可以训练、评测、可视化。详情：[mmdet3d 官网](https://github.com/open-mmlab/mmdetection3d) 、[官方文档](https://mmdetection3d.readthedocs.io/zh_CN/latest/tutorials/customize_dataset.html)。官方文档中，提供了 3 种不同的方式：支持新的数据格式、将新数据的格式转换为现有数据的格式、将新数据集的格式转换为一种当前可支持的中间格式。这三种方式大同小异。本质都是 4 步：
+mmdet3d 框架是商汤的 3D 目标检测工具箱，支持训练、评测、可视化。详情：[mmdet3d 官网](https://github.com/open-mmlab/mmdetection3d) 、[官方文档](https://mmdetection3d.readthedocs.io/zh_CN/latest/tutorials/customize_dataset.html)。官方文档中，提供了 3 种不同的方式：支持新的数据格式、将新数据的格式转换为现有数据的格式、将新数据集的格式转换为一种当前可支持的中间格式。这三种方式大同小异。本质都是 4 步：
 
 1. 将数据集预处理成 pkl 文件
 2. 创建自定义数据集类，并在数据集中读取并解析 pkl 文件
@@ -9,7 +9,7 @@ mmdet3d 框架是商汤的 3D 目标检测工具箱，可以训练、评测、�
 
 其中，第 4 步在训练的过程中可有可无，在验证和测试的时候需要。
 
-为了简便，本文只使用激光雷达数据作为例子，自定义数据集的名称叫 "meg"。使用的模型为 3DSSD 。
+为了简便，本文只使用激光雷达数据作为例子，自定义数据集的名称叫 "meg"。使用的模型为 [3DSSD](https://github.com/open-mmlab/mmdetection3d/tree/main/configs/3dssd) 。
 
 ## 可视化数据集
 
@@ -17,7 +17,7 @@ mmdet3d 框架是商汤的 3D 目标检测工具箱，可以训练、评测、�
 
 ## 数据集预处理成 pkl 文件
 
-mmdet3d 官方提供的数据集都会先预处理成 pkl 文件，文件内保存一些数据集的基本信息，如数据存放路径，数据真值(bboxes、labels)， 相机内外参等。通常，自定义的数据集的 annotation info 保存格式可能有很多，如 json、yaml 等。我们需要将自定义的数据集的 anno 信息保存成 pkl 文件。这里可以模仿 nuscenes 数据集的创建过程，步骤如下：
+mmdet3d 官方提供的数据集的 annotation infomation （以下简称 ann info）都会先预处理成 pkl 文件，文件内保存一些数据集的基本信息，如数据存放路径，数据真值(bboxes、labels)， 相机内外参等。通常，自定义的数据集的 ann info 保存格式可能有很多，如 json、yaml 等。我们需要将自定义的数据集的 ann info 保存成 pkl 文件。这里可以模仿 nuscenes 数据集的创建过程，步骤如下：
 
 ### 主函数
 
@@ -67,11 +67,11 @@ if __name__ == '__main__':
 
 ```
 
-上述代码中，主函数先读取参数，然后最关键的就是这一行：`meg_converter.create_meg_infos(root_path, info_prefix)`
+上述代码中，主函数先读取参数，然后最关键的就是这个函数：`meg_converter.create_meg_infos` 。
 
-### 编写处理 pkl 代码
+### 整理并导出成 pkl 文件
 
-create_meg_info 的定义以及实现如下：
+`create_meg_info` 首先解读数据集，整理成 python 的字典格式，其包括两个值：`data_list` 和 `meta_info` 。然后再使用 `mmengine.dump` 保存成 pkl 文件，它的定义以及实现如下：
 
 ```python
 # meg_converter.py
@@ -119,8 +119,8 @@ def _fill_trainval_infos(root_path):
   
     """
     这部分自己写，步骤：
-    1. 读取自定义数据集的 anno info 文件
-    2. 将自定义的 anno info 信息处理成 dict
+    1. 读取自定义数据集的 ann info 文件
+    2. 将自定义的 ann info 信息处理成 dict
     3. 将 dict 存入 train_infos 和 val_infos 列表
     """
 
@@ -128,11 +128,11 @@ def _fill_trainval_infos(root_path):
 
 ```
 
-上述代码中，class_names 更换为自定义数据集的类别。然后编写 `_fill_trainval_infos(root_path)` 函数，方法见函数内注释。运行 create_data.py 文件后，就会在数据集根目录下保存 pkl 文件。
+上述代码中，`class_names` 更换为自定义数据集的类别。然后编写 `_fill_trainval_infos(root_path)` 函数，方法见函数内注释。运行 `create_data.py` 文件后，就会在数据集根目录下保存 pkl 文件。
 
 ### 查看处理好的 pkl 文件
 
-在处理好 anno info 的 pkl 文件后，可以读取 pkl 文件查看。读取方法：
+在处理好 ann info 的 pkl 文件后，可以读取 pkl 文件查看。读取方法：
 
 ```python
 import pickle
@@ -151,9 +151,9 @@ print(data)
 
 ## 创建自定义数据集类
 
-上面处理完的 pkl 文件只是保存一些基本信息，如数据集文件路径、anno info 的一些基本格式（如列表、字典等）。自定义数据集类的作用是从路径中读取数据 anno info，并处理成 mmdet3d 的格式。
+上面处理完的 pkl 文件只是保存一些基本信息，如数据集文件路径、ann info 的一些基本格式（如列表、字典等）。自定义数据集类的作用是从路径中读取数据 ann info，并处理成 mmdet3d 的格式。
 
-回顾一下，使用 pytorch 训练自定义数据集时，也需要创建自定义数据集类，其中就是 `__getitem__`和 `__len__`，其作用是读取数据和 gt 信息，解析成 numpy 或者 Tensor 格式并 return。mmdet3d 中，也要进行类似的操作，但是因为读取数据部分放在 pipeline 中，所以只需要解析 anno info 并 return 即可。mmdet3d 的激光雷达 gt_bboxes_3d 有固定的格式：LiDARInstance3DBoxes。
+回顾一下，使用 pytorch 训练自定义数据集时，也需要创建自定义数据集类，其中作主要的就是编写 `__getitem__`和 `__len__` 这两个函数，其作用是读取数据和 GT 信息，解析成 numpy 或者 Tensor 格式并 return。mmdet3d 中，也要进行类似的操作，但是因为读取数据部分放在 pipeline 中，所以只需要解析 ann info 并 return 即可。mmdet3d 的包围框 gt_bboxes_3d 有固定的格式：LiDARInstance3DBoxes 。创建数据集的代码如下：
 
 ```python
 from typing import Callable, List, Union
@@ -241,7 +241,7 @@ class MegDataset(Det3DDataset):
 
 ```
 
-训练的时候，首先进入 `parse_data_info` 函数，然后调用 `parse_ann_info` 函数。其中的参数 `info` 是 读取的 pkl 格式。其中，这段代码根据实际情况自行编写：
+训练的时候，首先进入 `parse_data_info` 函数，然后调用 `parse_ann_info` 函数。其中的参数 `info` 是 读取的 pkl 格式。其中，METAINFO 根据自定义数据集的实际类别情况修改。下面 gt_bboxes_3d 也根据实际情况自行编写：
 
 ```python
 gt_bboxes_3d = LiDARInstance3DBoxes(
@@ -250,12 +250,12 @@ gt_bboxes_3d = LiDARInstance3DBoxes(
     origin=(0.5, 0.5, 0.5)).convert_to(self.box_mode_3d)
 ```
 
-
 ## 编写配置文件
 
-本文以 3DSSD 模型为例子。mmdet3d 框架的 config 文件采用继承的方式，详情见[官方文档](https://mmdetection3d.readthedocs.io/zh_CN/latest/tutorials/config.html)。但是笔者个人建议对继承这成方式不熟悉的用户不使用这种方式，而是将配置文件写全。可以先运行一遍官方的 3dssd 的 config，然后在 work_dirs 找到其完整的配置文件，复制到创建的配置文件。在创建的配置文件顶部，可以自定义导入某些 python 模块。
+本文以 3DSSD 模型为例子。mmdet3d 框架的 config 文件采用继承的方式，详情见[官方文档](https://mmdetection3d.readthedocs.io/zh_CN/latest/tutorials/config.html)。但是笔者个人建议对继承这成方式不熟悉的用户不使用这种方式，而是将配置文件写全。可以先运行一遍官方的 3dssd 的 [config](https://github.com/open-mmlab/mmdetection3d/blob/main/configs/3dssd/3dssd_4xb4_kitti-3d-car.py)，然后在 work_dirs 找到其完整的配置文件，复制到创建的配置文件。在创建的配置文件顶部，可以自定义导入某些 python 模块。
 
 ```python
+# 3dssd_meg-19classes.py
 custom_imports = dict(
     imports=[
         'projects.Meg_Dataset.meg_dataset.meg_dataset',
@@ -265,6 +265,8 @@ custom_imports = dict(
 ```
 
 接着再进行修改，修改的部分主要有：数据集名称、data_root、ann_file 路径、class_names，num_classes(model->bbox_head->num_classes)。其中值得注意的是，num_classes 需要对应 class_names 列表的长度，笔者在训练时，在这上面花费了很长时间 debug 都没找到问题所在，最终还是靠度娘。
+
+然后再改一些超参：比如 lr、batch_size 、max_epochs、val_interval 等。val_interval 表示每训练多少个 epoch 验证一次结果。
 
 mmdet3d 官方在训练的时候会每过几个 epoch 进行一次 val 验证，但是验证需要编写 Metric 类，这部分笔者还没仔细研究，因此笔者训练的时候不进行验证，把一切关于 val 的内容注释，否则会报错。完整的代码如下：
 
@@ -562,9 +564,57 @@ class MegLoadPointsFromFile(LoadPointsFromFile):
 
 ```
 
-上述代码中，程序首先进入 `transform` 函数，然后调用  `_load_pcd_points` 函数，`_load_pcd_points` 函数的实现过程需要自行替换。有的数据集点云文件是 pcd 格式，有的是 bin 格式保存，根据不同的格式读取，并解析成 numpy 格式。
+上述代码中，程序首先进入 `transform` 函数，然后调用  `_load_pcd_points` 函数，`_load_pcd_points` 函数的实现过程需要自行替换。有的数据集点云文件是 pcd 格式，有的是 bin 格式保存，需要根据不同的格式读取，并解析成 numpy 格式。
 
+## 开始训练
 
+在完成上述所有的代码后，即可进行训练：
+
+```bash
+python tools/train.py xxx/3dssd_meg-19classes.py
+```
+
+不出意外的话，可以训练：
+
+```bash
+05/25 13:45:47 - mmengine - INFO - ------------------------------
+05/25 13:45:47 - mmengine - INFO - The length of the dataset: 685
+05/25 13:45:47 - mmengine - INFO - The number of instances per category in the dataset:
++----------+--------+
+| category | number |
++----------+--------+
+| 小汽车   | 0      |
+| 汽车     | 4285   |
+| 货车     | 526    |
+| 工程车   | 46     |
+| 巴士     | 120    |
+| 摩托车   | 324    |
+| 自行车   | 178    |
+| 三轮车   | 205    |
+| 骑车人   | 487    |
+| 骑行的人 | 0      |
+| 人       | 513    |
+| 行人     | 0      |
+| 其它     | 15     |
+| 残影     | 2      |
+| 蒙版     | 695    |
+| 其他     | 0      |
+| 拖挂     | 0      |
+| 锥桶     | 0      |
+| 防撞柱   | 0      |
++----------+--------+
+05/25 13:45:52 - mmengine - INFO - Auto resumed from the latest checkpoint /home/daxiongpro/code/mmdetection3d/work_dirs/3dssd_megvii-3d-car/epoch_81.pth.
+Loads checkpoint by local backend from path: /home/daxiongpro/code/mmdetection3d/work_dirs/3dssd_megvii-3d-car/epoch_81.pth
+05/25 13:45:52 - mmengine - INFO - Load checkpoint from /home/daxiongpro/code/mmdetection3d/work_dirs/3dssd_megvii-3d-car/epoch_81.pth
+05/25 13:45:52 - mmengine - INFO - resumed epoch: 81, iter: 6966
+05/25 13:45:53 - mmengine - INFO - Checkpoints will be saved to /home/daxiongpro/code/mmdetection3d/work_dirs/3dssd_megvii-3d-car.
+/home/daxiongpro/code/mmdetection3d/mmdet3d/models/task_modules/coders/partial_bin_based_bbox_coder.py:220: UserWarning: __floordiv__ is deprecated, and its behavior will change in a future version of pytorch. It currently rounds toward 0 (like the 'trunc' function NOT 'floor'). This results in incorrect rounding for negative values. To keep the current behavior, use torch.div(a, b, rounding_mode='trunc'), or for actual floor division, use torch.div(a, b, rounding_mode='floor').
+  angle_cls = shifted_angle // angle_per_class
+05/25 13:46:44 - mmengine - INFO - Exp name: 3dssd_megvii-3d-car_20230525_134521
+05/25 13:46:54 - mmengine - INFO - Epoch(train)  [82][50/86]  lr: 2.0000e-05  eta: 2:53:33  time: 1.2303  data_time: 0.6377  memory: 18906  grad_norm: 71.2818  loss: 24.2896  centerness_loss: 0.0049  center_loss: 0.7276  dir_class_loss: 1.4938  dir_res_loss: 0.0230  size_res_loss: 1.0054  corner_loss: 13.0545  vote_loss: 7.9803
+```
+
+> 3DSSD 是一个检测车辆的模型，只有 car 一个类别，而本文的 meg 数据集有 19 个类别，所以只是做一个简单的训练教程，训练出来的效果很差，loss 也很大。要想得到好的训练效果，应该选一个好的模型，并且修改模型的相关参数，例如数据集的均值、方差等等。
 
 ## 日期
 
