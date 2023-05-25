@@ -6,6 +6,7 @@
 
 **五月**
 
+* [rosmsg 之 Pointcloud2 与 numpy 的相互转换](2023_05/rosmsg_numpy_transfer/rosmsg_numpy_transfer.md)
 * [ros 接收点云消息（python）](2023_05/ros1_receive_pointcloud_msgs/ros1_receive_pointcloud_msgs.md)
 * [使用 mmdet3d 框架训练自定义数据集](2023_05/train_self_dataset_using_mmdet3d/train_self_dataset_using_mmdet3d.md)
 * [使用 vscode 调试代码](2023_05/vscode_debug/vscode_debug.md)
@@ -18,14 +19,24 @@
 
 * [ros2 接收点云消息(c++)](2023_04/ros_receive_pointcloud_msgs/ros_receive_pointcloud_msg_c++.md)
 
-## 更早
+## 2022
 
-* [Pycharm使用ssh远程python环境并在本地可视化open3d](earlier/linux/ssh远程环境本地可视化.md)
-* [基于Ubuntu20.04的远程桌面安装](earlier/linux/基于Ubuntu20.04的远程桌面安装.md)
-* [基于Ubuntu18.04的远程桌面安装](earlier/remote_desktop/基于Ubuntu18.04的远程桌面安装.md)
+**七月**
+
+* [Pycharm 使用 ssh 远程 python 环境并在本地可视化 open3d](earlier/linux/ssh远程环境本地可视化.md)
+* [基于 Ubuntu20.04 的远程桌面安装](earlier/linux/基于Ubuntu20.04的远程桌面安装.md)
+* [基于 Ubuntu18.04 的远程桌面安装](earlier/remote_desktop/基于Ubuntu18.04的远程桌面安装.md)
 * [使用 remmina 远程桌面](earlier/remote_desktop/remmina_desktop.md)
 
-### 其他平台（公众号）
+## 其他文章
+
+**知乎**
+
+* [nvidia-docker安装及使用](https://zhuanlan.zhihu.com/p/540809255)
+* [EPNet碰到的问题](https://zhuanlan.zhihu.com/p/540805568)
+* [anaconda 新建虚拟环境 目录问题](https://zhuanlan.zhihu.com/p/540805155)
+
+**公众号**
 
 * [gihub下载太慢怎么办](https://mp.weixin.qq.com/s?__biz=MzI3NDUwMTIzNg==&mid=2247483840&idx=1&sn=364c4d21b0e2d14a4dab912fbae2f50e&chksm=eb125adbdc65d3cdb878399fef9b6fcebe600673901bcab00f25dd592cb62c3dfa18480abb6f#rd)
 * [动手学Linux（2）](https://mp.weixin.qq.com/s?__biz=MzI3NDUwMTIzNg==&mid=2247483828&idx=1&sn=88ece147224a909ce2649a2718d3a4c1&chksm=eb125aafdc65d3b93aab52da4c1d04d5b3923bd2ea709ba0d947221bc89b22a83a80e81e9b5e#rd)
