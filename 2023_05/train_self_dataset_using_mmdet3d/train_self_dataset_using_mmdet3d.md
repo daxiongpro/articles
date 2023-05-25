@@ -151,8 +151,420 @@ print(data)
 
 ## 创建自定义数据集类
 
+上面处理完的 pkl 文件只是保存一些基本信息，如数据集文件路径、anno info 的一些基本格式（如列表、字典等）。自定义数据集类的作用是从路径中读取数据 anno info，并处理成 mmdet3d 的格式。
+
+回顾一下，使用 pytorch 训练自定义数据集时，也需要创建自定义数据集类，其中就是 `__getitem__`和 `__len__`，其作用是读取数据和 gt 信息，解析成 numpy 或者 Tensor 格式并 return。mmdet3d 中，也要进行类似的操作，但是因为读取数据部分放在 pipeline 中，所以只需要解析 anno info 并 return 即可。mmdet3d 的激光雷达 gt_bboxes_3d 有固定的格式：LiDARInstance3DBoxes。
+
+```python
+from typing import Callable, List, Union
+
+import numpy as np
+
+from mmdet3d.registry import DATASETS
+from mmdet3d.structures import LiDARInstance3DBoxes
+from mmdet3d.datasets.det3d_dataset import Det3DDataset
+
+
+@DATASETS.register_module()
+class MegDataset(Det3DDataset):
+
+    METAINFO = {
+        'classes':
+        ("小汽车", "汽车", "货车", "工程车", "巴士", "摩托车", "自行车", "三轮车", "骑车人", "骑行的人",
+         "人", "行人", "其它", "残影", "蒙版", "其他", "拖挂", "锥桶", "防撞柱")
+    }
+
+    def __init__(self,
+                 data_root: str,
+                 ann_file: str,
+                 pipeline: List[Union[dict, Callable]] = [],
+                 **kwargs) -> None:
+
+        super().__init__(
+            data_root=data_root,
+            ann_file=ann_file,
+            pipeline=pipeline,
+            **kwargs)
+
+    def parse_data_info(self, info: dict) -> dict:
+        """Process the raw data info.
+
+        Convert all relative path of needed modality data file to
+        the absolute path. And process the `instances` field to
+        `ann_info` in training stage.
+
+        Args:
+            info (dict): Raw info dict.
+
+        Returns:
+            dict: Has `ann_info` in training stage. And
+            all path has been converted to absolute path.
+        """
+
+        if not self.test_mode:
+            # used in training
+            info['ann_info'] = self.parse_ann_info(info)
+        if self.test_mode and self.load_eval_anns:
+            info['eval_ann_info'] = self.parse_ann_info(info)
+
+        return info
+
+    def parse_ann_info(self, info: dict) -> dict:
+        """Process the `instances` in data info to `ann_info`.
+
+        Args:
+            info (dict): Data information of single data sample.
+
+        Returns:
+            dict: Annotation information consists of the following keys:
+
+                - gt_bboxes_3d (:obj:`LiDARInstance3DBoxes`):
+                  3D ground truth bboxes.
+                - gt_labels_3d (np.ndarray): Labels of ground truths.
+        """
+        ann_info = super().parse_ann_info(info)
+
+        if ann_info is None:
+            # empty instance
+            ann_info = dict()
+            ann_info['gt_bboxes_3d'] = np.zeros((0, 7), dtype=np.float32)
+            ann_info['gt_labels_3d'] = np.zeros(0, dtype=np.int64)
+
+        gt_bboxes_3d = LiDARInstance3DBoxes(
+            ann_info['gt_bboxes_3d'],
+            box_dim=ann_info['gt_bboxes_3d'].shape[-1],
+            origin=(0.5, 0.5, 0.5)).convert_to(self.box_mode_3d)
+
+        ann_info['gt_bboxes_3d'] = gt_bboxes_3d
+
+        return ann_info
+
+```
+
+训练的时候，首先进入 `parse_data_info` 函数，然后调用 `parse_ann_info` 函数。其中的参数 `info` 是 读取的 pkl 格式。其中，这段代码根据实际情况自行编写：
+
+```python
+gt_bboxes_3d = LiDARInstance3DBoxes(
+    ann_info['gt_bboxes_3d'],
+    box_dim=ann_info['gt_bboxes_3d'].shape[-1],
+    origin=(0.5, 0.5, 0.5)).convert_to(self.box_mode_3d)
+```
+
 
 ## 编写配置文件
+
+本文以 3DSSD 模型为例子。mmdet3d 框架的 config 文件采用继承的方式，详情见[官方文档](https://mmdetection3d.readthedocs.io/zh_CN/latest/tutorials/config.html)。但是笔者个人建议对继承这成方式不熟悉的用户不使用这种方式，而是将配置文件写全。可以先运行一遍官方的 3dssd 的 config，然后在 work_dirs 找到其完整的配置文件，复制到创建的配置文件。在创建的配置文件顶部，可以自定义导入某些 python 模块。
+
+```python
+custom_imports = dict(
+    imports=[
+        'projects.Meg_Dataset.meg_dataset.meg_dataset',
+        'projects.Meg_Dataset.meg_dataset.loading'
+    ],
+    allow_failed_imports=False)
+```
+
+接着再进行修改，修改的部分主要有：数据集名称、data_root、ann_file 路径、class_names，num_classes(model->bbox_head->num_classes)。其中值得注意的是，num_classes 需要对应 class_names 列表的长度，笔者在训练时，在这上面花费了很长时间 debug 都没找到问题所在，最终还是靠度娘。
+
+mmdet3d 官方在训练的时候会每过几个 epoch 进行一次 val 验证，但是验证需要编写 Metric 类，这部分笔者还没仔细研究，因此笔者训练的时候不进行验证，把一切关于 val 的内容注释，否则会报错。完整的代码如下：
+
+```python
+# 3dssd_meg-19classes.py
+custom_imports = dict(
+    imports=[
+        'projects.Meg_Dataset.meg_dataset.meg_dataset',
+        'projects.Meg_Dataset.meg_dataset.loading'
+    ],
+    allow_failed_imports=False)
+
+dataset_type = 'MegDataset'
+data_root = 'data/xxxx/'
+ann_file = 'meg_infos_train.pkl'
+launcher = 'none'
+work_dir = './work_dirs/3dssd_meg-3d-19classes'
+class_names = [
+    '小汽车', '汽车', '货车', '工程车', '巴士', '摩托车', '自行车', '三轮车', '骑车人', '骑行的人', '人',
+    '行人', '其它', '残影', '蒙版', '其他', '拖挂', '锥桶', '防撞柱'
+]
+
+model = dict(
+    type='SSD3DNet',
+    data_preprocessor=dict(type='Det3DDataPreprocessor'),
+    backbone=dict(
+        type='PointNet2SAMSG',
+        in_channels=3,
+        num_points=(4096, 512, (256, 256)),
+        radii=((0.2, 0.4, 0.8), (0.4, 0.8, 1.6), (1.6, 3.2, 4.8)),
+        num_samples=((32, 32, 64), (32, 32, 64), (32, 32, 32)),
+        sa_channels=(((16, 16, 32), (16, 16, 32), (32, 32, 64)),
+                     ((64, 64, 128), (64, 64, 128), (64, 96, 128)),
+                     ((128, 128, 256), (128, 192, 256), (128, 256, 256))),
+        aggregation_channels=(64, 128, 256),
+        fps_mods=('D-FPS', 'FS', ('F-FPS', 'D-FPS')),
+        fps_sample_range_lists=(-1, -1, (512, -1)),
+        norm_cfg=dict(type='BN2d', eps=0.001, momentum=0.1),
+        sa_cfg=dict(
+            type='PointSAModuleMSG',
+            pool_mod='max',
+            use_xyz=True,
+            normalize_xyz=False)),
+    bbox_head=dict(
+        type='SSD3DHead',
+        vote_module_cfg=dict(
+            in_channels=256,
+            num_points=256,
+            gt_per_seed=1,
+            conv_channels=(128, ),
+            conv_cfg=dict(type='Conv1d'),
+            norm_cfg=dict(type='BN1d', eps=0.001, momentum=0.1),
+            with_res_feat=False,
+            vote_xyz_range=(3.0, 3.0, 2.0)),
+        vote_aggregation_cfg=dict(
+            type='PointSAModuleMSG',
+            num_point=256,
+            radii=(4.8, 6.4),
+            sample_nums=(16, 32),
+            mlp_channels=((256, 256, 256, 512), (256, 256, 512, 1024)),
+            norm_cfg=dict(type='BN2d', eps=0.001, momentum=0.1),
+            use_xyz=True,
+            normalize_xyz=False,
+            bias=True),
+        pred_layer_cfg=dict(
+            in_channels=1536,
+            shared_conv_channels=(512, 128),
+            cls_conv_channels=(128, ),
+            reg_conv_channels=(128, ),
+            conv_cfg=dict(type='Conv1d'),
+            norm_cfg=dict(type='BN1d', eps=0.001, momentum=0.1),
+            bias=True),
+        objectness_loss=dict(
+            type='mmdet.CrossEntropyLoss',
+            use_sigmoid=True,
+            reduction='sum',
+            loss_weight=1.0),
+        center_loss=dict(
+            type='mmdet.SmoothL1Loss', reduction='sum', loss_weight=1.0),
+        dir_class_loss=dict(
+            type='mmdet.CrossEntropyLoss', reduction='sum', loss_weight=1.0),
+        dir_res_loss=dict(
+            type='mmdet.SmoothL1Loss', reduction='sum', loss_weight=1.0),
+        size_res_loss=dict(
+            type='mmdet.SmoothL1Loss', reduction='sum', loss_weight=1.0),
+        corner_loss=dict(
+            type='mmdet.SmoothL1Loss', reduction='sum', loss_weight=1.0),
+        vote_loss=dict(
+            type='mmdet.SmoothL1Loss', reduction='sum', loss_weight=1.0),
+        num_classes=len(class_names),
+        bbox_coder=dict(
+            type='AnchorFreeBBoxCoder', num_dir_bins=12, with_rot=True)),
+    train_cfg=dict(
+        sample_mode='spec', pos_distance_thr=10.0, expand_dims_length=0.05),
+    test_cfg=dict(
+        nms_cfg=dict(type='nms', iou_thr=0.1),
+        sample_mode='spec',
+        score_thr=0.0,
+        per_class_proposal=True,
+        max_output_num=100))
+
+point_cloud_range = [0, -40, -5, 70, 40, 3]
+input_modality = dict(use_lidar=True, use_camera=False)
+metainfo = dict(class_names=class_names)
+db_sampler = dict()
+train_pipeline = [
+    dict(type='MegLoadPointsFromFile', coord_type='LIDAR', use_dim=3),
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
+    dict(type='PointsRangeFilter', point_cloud_range=[0, -40, -5, 70, 40, 3]),
+    dict(type='ObjectRangeFilter', point_cloud_range=[0, -40, -5, 70, 40, 3]),
+    dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
+    dict(
+        type='ObjectNoise',
+        num_try=100,
+        translation_std=[1.0, 1.0, 0],
+        global_rot_range=[0.0, 0.0],
+        rot_range=[-1.0471975511965976, 1.0471975511965976]),
+    dict(
+        type='GlobalRotScaleTrans',
+        rot_range=[-0.78539816, 0.78539816],
+        scale_ratio_range=[0.9, 1.1]),
+    dict(type='PointSample', num_points=16384),
+    dict(
+        type='Pack3DDetInputs',
+        keys=['points', 'gt_bboxes_3d', 'gt_labels_3d'])
+]
+test_pipeline = [
+    dict(
+        type='MegLoadPointsFromFile',
+        coord_type='LIDAR',
+        load_dim=3,
+        use_dim=3),
+    dict(
+        type='MultiScaleFlipAug3D',
+        img_scale=(1333, 800),
+        pts_scale_ratio=1,
+        flip=False,
+        transforms=[
+            # dict(
+            #     type='GlobalRotScaleTrans',
+            #     rot_range=[0, 0],
+            #     scale_ratio_range=[1.0, 1.0],
+            #     translation_std=[0, 0, 0]),
+            # dict(type='RandomFlip3D'),
+            dict(
+                type='PointsRangeFilter',
+                point_cloud_range=[0, -40, -5, 70, 40, 3]),
+            dict(type='PointSample', num_points=16384)
+        ]),
+    dict(type='Pack3DDetInputs', keys=['points'])
+]
+eval_pipeline = [
+    dict(
+        type='MegLoadPointsFromFile',
+        coord_type='LIDAR',
+        load_dim=3,
+        use_dim=3),
+    dict(type='Pack3DDetInputs', keys=['points'])
+]
+train_dataloader = dict(
+    batch_size=16,
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(type='DefaultSampler', shuffle=True),
+    dataset=dict(
+        type='RepeatDataset',
+        times=2,
+        dataset=dict(
+            type=dataset_type,
+            data_root=data_root,
+            ann_file=ann_file,
+            data_prefix=dict(pts='training/velodyne_reduced'),
+            pipeline=train_pipeline,
+            modality=dict(use_lidar=True, use_camera=False),
+            test_mode=False,
+            metainfo=dict(class_names=class_names),
+            box_type_3d='LiDAR')))
+# val_dataloader = dict(
+#     batch_size=1,
+#     num_workers=1,
+#     persistent_workers=True,
+#     drop_last=False,
+#     sampler=dict(type='DefaultSampler', shuffle=False),
+#     dataset=dict(
+#         type=dataset_type,
+#         data_root=data_root,
+#         data_prefix=dict(pts='training/velodyne_reduced'),
+#         ann_file=ann_file,
+#         pipeline=eval_pipeline,
+#         modality=dict(use_lidar=True, use_camera=False),
+#         test_mode=True,
+#         metainfo=dict(class_names=class_names),
+#         box_type_3d='LiDAR'))
+test_dataloader = dict(
+    batch_size=1,
+    num_workers=1,
+    persistent_workers=True,
+    drop_last=False,
+    sampler=dict(type='DefaultSampler', shuffle=False),
+    dataset=dict(
+        type=dataset_type,
+        data_root=data_root,
+        data_prefix=dict(pts='training/velodyne_reduced'),
+        ann_file=ann_file,
+        pipeline=test_pipeline,
+        modality=dict(use_lidar=True, use_camera=False),
+        test_mode=True,
+        metainfo=dict(class_names=class_names),
+        box_type_3d='LiDAR'))
+# val_evaluator = dict(
+#     type='KittiMetric',
+#     ann_file=data_root + ann_file,
+#     metric='bbox')
+test_evaluator = dict(
+    type='KittiMetric', ann_file=data_root + ann_file, metric='bbox')
+vis_backends = [dict(type='LocalVisBackend')]
+visualizer = dict(
+    type='Det3DLocalVisualizer',
+    vis_backends=[dict(type='LocalVisBackend')],
+    name='visualizer')
+default_scope = 'mmdet3d'
+default_hooks = dict(
+    timer=dict(type='IterTimerHook'),
+    logger=dict(type='LoggerHook', interval=50),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    checkpoint=dict(type='CheckpointHook', interval=1),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    visualization=dict(type='Det3DVisualizationHook'))
+env_cfg = dict(
+    cudnn_benchmark=False,
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0),
+    dist_cfg=dict(backend='nccl'))
+log_processor = dict(type='LogProcessor', window_size=50, by_epoch=True)
+log_level = 'INFO'
+load_from = None
+resume = False
+file_client_args = dict(backend='disk')
+lr = 0.002
+optim_wrapper = dict(
+    type='OptimWrapper',
+    optimizer=dict(type='AdamW', lr=lr, weight_decay=0.0),
+    clip_grad=dict(max_norm=35, norm_type=2))
+train_cfg = dict(type='EpochBasedTrainLoop', max_epochs=180, val_interval=-1)
+# val_cfg = dict(type='ValLoop')
+test_cfg = dict(type='TestLoop')
+param_scheduler = [
+    dict(
+        type='MultiStepLR',
+        begin=0,
+        end=80,
+        by_epoch=True,
+        milestones=[45, 60],
+        gamma=0.1)
+]
+
+```
+
+官方代码的 train_pipeline 中，使用的是 LoadPointsFromFile 类，但需要适配自定义数据集的 pkl 格式，可能需要自定义 LoadPointsFromFile 类。上述代码的 train_pipeline 中，使用了自定义的 MegLoadPointsFromFile 类。MegLoadPointsFromFile 代码如下：
+
+```python
+import numpy as np
+from mmdet3d.registry import TRANSFORMS
+from mmdet3d.structures.points import get_points_type
+from mmdet3d.datasets.transforms.loading import LoadPointsFromFile
+# from pyntcloud import PyntCloud
+
+
+@TRANSFORMS.register_module()
+class MegLoadPointsFromFile(LoadPointsFromFile):
+
+    def _load_pcd_points(self, pts_filename: str) -> np.ndarray:
+        """读取 pcd 文件， 得到 np.ndarray(N, 4)
+        """
+        with open(pts_filename, 'rb') as f:
+            data = f.read()
+            data_binary = data[data.find(b"DATA binary") + 12:]
+            points = np.frombuffer(data_binary, dtype=np.float32).reshape(-1, 3)
+            points = points.astype(np.float32)
+        return points
+
+    def transform(self, results: dict) -> dict:
+        """
+            生成 LiDARPoints 格式
+        """
+        pts_file_path = results['lidar_path']
+        points = self._load_pcd_points(pts_file_path)  # (N, 4)
+
+        points = points[:, self.use_dim]
+
+        points_class = get_points_type(self.coord_type)
+        points = points_class(points, points_dim=points.shape[-1])
+        results['points'] = points
+
+        return results
+
+```
+
+上述代码中，程序首先进入 `transform` 函数，然后调用  `_load_pcd_points` 函数，`_load_pcd_points` 函数的实现过程需要自行替换。有的数据集点云文件是 pcd 格式，有的是 bin 格式保存，根据不同的格式读取，并解析成 numpy 格式。
+
+
 
 ## 日期
 
