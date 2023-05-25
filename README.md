@@ -1,6 +1,6 @@
 # 记录文章博客
 
-记录一些实验过程。每篇文章尽量简洁，完成一个最小功能。文章中的代码都已经通过测试，并且开源。
+记录一些实验过程。每篇文章尽量简洁，完成一个最小功能。文章中的代码都已经通过测试，并且开源。每篇文章都会同步到[知乎](https://www.zhihu.com/people/da-xiong-43-94/posts)。
 
 ## 2023
 
@@ -23,3 +23,12 @@
 * [基于Ubuntu20.04的远程桌面安装](earlier/linux/基于Ubuntu20.04的远程桌面安装.md)
 * [基于Ubuntu18.04的远程桌面安装](earlier/remote_desktop/基于Ubuntu18.04的远程桌面安装.md)
 * [使用 remmina 远程桌面](earlier/remote_desktop/remmina_desktop.md)
+
+### 其他平台（公众号）
+
+* [gihub下载太慢怎么办](https://mp.weixin.qq.com/s?__biz=MzI3NDUwMTIzNg==&mid=2247483840&idx=1&sn=364c4d21b0e2d14a4dab912fbae2f50e&chksm=eb125adbdc65d3cdb878399fef9b6fcebe600673901bcab00f25dd592cb62c3dfa18480abb6f#rd)
+* [动手学Linux（2）](https://mp.weixin.qq.com/s?__biz=MzI3NDUwMTIzNg==&mid=2247483828&idx=1&sn=88ece147224a909ce2649a2718d3a4c1&chksm=eb125aafdc65d3b93aab52da4c1d04d5b3923bd2ea709ba0d947221bc89b22a83a80e81e9b5e#rd)
+* [如何远程连接子网内的电脑？](https://mp.weixin.qq.com/s?__biz=MzI3NDUwMTIzNg==&mid=2247483801&idx=1&sn=c101fc74de238f066787e114efcf5efc&chksm=eb125a82dc65d394edb22a22116f69287496b65f790cf9132d7a0f122556c2d48ac91f0e3c7e#rd)
+* [python 多线程](https://mp.weixin.qq.com/s?__biz=MzI3NDUwMTIzNg==&mid=2247483793&idx=1&sn=835ba0ff92f1c11631f9f936f5a24453&chksm=eb125a8adc65d39c15711512cc9c4d5d392b06383f606523d34dd3ec6f81519d049b89e4487f#rd)
+* [动手学Linux](https://mp.weixin.qq.com/s?__biz=MzI3NDUwMTIzNg==&mid=2247483790&idx=1&sn=601efb03c3434815de1a817260cb342c&chksm=eb125a95dc65d383791181856a2f6104a48640ccb36c48b5d8bed718026ad6dcb0f4b1b3e5ea#rd)
+* [Resnet解决了一个什么问题？](https://mp.weixin.qq.com/s?__biz=MzI3NDUwMTIzNg==&mid=2247483775&idx=1&sn=0497e6a15385a178e5f0143dd6872583&chksm=eb125a64dc65d3725c8cc59a8ec3a72d52851de775f2e9e265e7c1441f61ed2314ae8e22b823&token=30303029&lang=zh_CN#rd)
