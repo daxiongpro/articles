@@ -6,6 +6,7 @@
 
 **五月**
 
+* [ros1 发布 bbox 话题](2023_05/ros1_publish_bbox_topic/ros1_publish_bbox_topic.md)
 * [rosmsg 之 Pointcloud2 与 numpy 的相互转换](2023_05/rosmsg_numpy_transfer/rosmsg_numpy_transfer.md)
 * [ros 接收点云消息（python）](2023_05/ros1_receive_pointcloud_msgs/ros1_receive_pointcloud_msgs.md)
 * [使用 mmdet3d 框架训练自定义数据集](2023_05/train_self_dataset_using_mmdet3d/train_self_dataset_using_mmdet3d.md)
@@ -23,10 +24,10 @@
 
 **七月**
 
-* [Pycharm 使用 ssh 远程 python 环境并在本地可视化 open3d](earlier/linux/ssh远程环境本地可视化.md)
-* [基于 Ubuntu20.04 的远程桌面安装](earlier/linux/基于Ubuntu20.04的远程桌面安装.md)
-* [基于 Ubuntu18.04 的远程桌面安装](earlier/remote_desktop/基于Ubuntu18.04的远程桌面安装.md)
-* [使用 remmina 远程桌面](earlier/remote_desktop/remmina_desktop.md)
+* [Pycharm 使用 ssh 远程 python 环境并在本地可视化 open3d](2022_07/linux/ssh远程环境本地可视化.md)
+* [基于 Ubuntu20.04 的远程桌面安装](2022_07/linux/基于Ubuntu20.04的远程桌面安装.md)
+* [基于 Ubuntu18.04 的远程桌面安装](2022_07/remote_desktop/基于Ubuntu18.04的远程桌面安装.md)
+* [使用 remmina 远程桌面](2022_07/remote_desktop/remmina_desktop.md)
 
 ## 其他文章
 
