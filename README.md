@@ -23,10 +23,10 @@
 
 **七月**
 
-* [Pycharm 使用 ssh 远程 python 环境并在本地可视化 open3d](earlier/linux/ssh远程环境本地可视化.md)
-* [基于 Ubuntu20.04 的远程桌面安装](earlier/linux/基于Ubuntu20.04的远程桌面安装.md)
-* [基于 Ubuntu18.04 的远程桌面安装](earlier/remote_desktop/基于Ubuntu18.04的远程桌面安装.md)
-* [使用 remmina 远程桌面](earlier/remote_desktop/remmina_desktop.md)
+* [Pycharm 使用 ssh 远程 python 环境并在本地可视化 open3d](2022_07/linux/ssh远程环境本地可视化.md)
+* [基于 Ubuntu20.04 的远程桌面安装](2022_07/linux/基于Ubuntu20.04的远程桌面安装.md)
+* [基于 Ubuntu18.04 的远程桌面安装](2022_07/remote_desktop/基于Ubuntu18.04的远程桌面安装.md)
+* [使用 remmina 远程桌面](2022_07/remote_desktop/remmina_desktop.md)
 
 ## 其他文章
 
