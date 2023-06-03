@@ -4,6 +4,10 @@
 
 ## 2023
 
+**六月**
+
+* [配置文件——yaml 转 py 格式](2023_06/yaml2py/yaml2py.md)
+
 **五月**
 
 * [python 读取 pkl, json, yaml 等文件](2023_05/file_reader/file_reader.md)
