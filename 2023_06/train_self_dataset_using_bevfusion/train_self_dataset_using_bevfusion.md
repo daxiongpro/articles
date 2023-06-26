@@ -2628,8 +2628,8 @@ if __name__ == '__main__':
 ### 6.3.编写测试脚本
 
 ```bash
-TEST_PY='projects/Megvii_dataset/tools/test.py'
-CONFIG_FILE='projects/Megvii_dataset/configs/bevfusion_c_l_megvii.py'
+TEST_PY='projects/Meg_dataset/tools/test.py'
+CONFIG_FILE='projects/Meg_dataset/configs/bevfusion_c_l_meg.py'
 PTH='pretrained/2023-06-13_08-46-56/epoch_24.pth'
 EVAL='map'
 
@@ -2642,7 +2642,7 @@ torchpack dist-run -np 1 python -m debugpy --listen 8531 --wait-for-client ${TES
 ### 6.4.测试集测试
 
 ```bash
-sh projects/Megvii_dataset/bash_runner/test.sh
+sh projects/Meg_dataset/bash_runner/test.sh
 ```
 
 ## 日期
