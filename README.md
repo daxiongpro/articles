@@ -4,6 +4,10 @@
 
 ## 2023
 
+**七月**
+
+* [吉利云服务器(PAI 平台)的使用](2023_07/geely_cloud/geely_cloud.md)
+
 **六月**
 
 * [bevfusion 训练自定义数据集](2023_06/train_self_dataset_using_bevfusion/train_self_dataset_using_bevfusion.md)
