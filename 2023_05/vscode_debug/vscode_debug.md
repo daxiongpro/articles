@@ -50,7 +50,6 @@ vscode 是一款代码编辑器，不是 IDE，需要手动配置一些配置文
 >
 > * 运行当前文件：Python: Current File
 > * 运行指定文件：（例如） train
->
 > * 使用 debugpy 运行：debugpy
 
 保存之后，点击“运行和调试 (ctrl+shift+D)"，就可以根据 name 字段选择。这里说说如何使用 debugpy 调试。
@@ -59,7 +58,7 @@ vscode 是一款代码编辑器，不是 IDE，需要手动配置一些配置文
 
 在训练 bevfusion 代码时，作者使用了自己的库 torchpack，无法正常调试。因此使用 debugpy 调试。调试方法如下。
 
-* 在命令行终端运行 python 命令时，在 `python` 和`参数`之间加入 `-m debugpy --listen 8531 --wait-for-client`，如：
+* 在命令行终端运行 python 命令时，在 `python` 和 `参数`之间加入 `-m debugpy --listen 8531 --wait-for-client`，如：
 
   ```
   python -m debugpy --listen 8531 --wait-for-client args1 args2 ...
@@ -75,8 +74,40 @@ vscode 是一款代码编辑器，不是 IDE，需要手动配置一些配置文
 
 ## 调试 C++ 代码
 
-未完待续……
+1.CMakeLists 末尾添加如下代码：
+
+```cmake
+# 调试信息
+add_definitions("-Wall -g") # 加了这句才能加断点调试
+set(CMAKE_BUILD_TYPE "Debug") # 断点错位问题解决
+# set(CMAKE_BUILD_TYPE "Release") # release模式
+```
+
+2.launch.json 中添加如下代码：
+
+```json
+{
+    "configurations": [
+      {
+        "name": "cppdbg_test",
+        "type": "cppdbg",
+        "request": "launch",
+        "program": "${fileDirname}/build/main",
+        "args": [],
+        "stopAtEntry": false,
+        "cwd": "${fileDirname}",
+        "environment": [
+        ]
+      }
+}
+```
+
+> 上述代码中，program  是 build 之后的二进制可执行文件。
+
+3.在主函数所在的文件中，按下 f5 可以调试
 
 # 日期
+
+2023/07/24：添加 c++ 调试步骤
 
 2023/05/19：创作本文
