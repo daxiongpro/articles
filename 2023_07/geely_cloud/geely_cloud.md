@@ -2,14 +2,14 @@
 
 连接 PAI 平台有两种方法：
 
-* 任意电脑 -> VDI -> PAI 平台
+* 任意电脑 -> [VDI](https://vdi.geely.com/logon/LogonPoint/tmindex.html) -> PAI 平台
 * 公司电脑 -> PAI 平台
 
 ## 1.总体流程：
 
 环境准备
 
-* 制作 docker 镜像，打包上传到吉利 harbor
+* 制作 docker 镜像，打包上传到吉利 [harbor](https://harbor.test.geely.com/harbor/projects)
 * PAI 平台 DSW 中新建 docker 容器
 
 代码准备
