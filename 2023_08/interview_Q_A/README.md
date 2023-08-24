@@ -6,7 +6,7 @@
 
 * 计算机基础
 * 编程语言和框架
-* 数据结构与算法
+* [数据结构与算法](2023_08/interview_Q_A/ds_and_algorithms.md)
 * [深度学习基础](deep_learning_basic.md)
 * [计算机视觉经典论文](2023_08/interview_Q_A/classic_paper.md)
 
