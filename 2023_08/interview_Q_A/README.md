@@ -4,7 +4,7 @@
 
 常问的问题分为以下几个板块：
 
-* 计算机基础
+* [计算机基础](2023_08/interview_Q_A/cs_basic.md)
 * 编程语言和框架
 * [数据结构与算法](2023_08/interview_Q_A/ds_and_algorithms.md)
 * [深度学习基础](deep_learning_basic.md)
