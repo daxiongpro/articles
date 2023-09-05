@@ -4,6 +4,10 @@
 
 ## 2023
 
+**九月**
+
+* [数据格式说明](2023_09/tianZhun_data/tianZhun_data.md)
+
 **八月**
 
 * [多传感器同步——点云投影到图像](2023_08/point2img/point2img.md)
@@ -13,7 +17,7 @@
 
 **七月**
 
-* [吉利云服务器(PAI 平台)的使用](2023_07/geely_cloud/geely_cloud.md)
+* [云服务器(PAI 平台)的使用](2023_07/geely_cloud/geely_cloud.md)
 
 **六月**
 
