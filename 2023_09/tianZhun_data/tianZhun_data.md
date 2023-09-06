@@ -219,6 +219,37 @@
             }
 ```
 
+#### lidar_ego
+
+```json
+"lidar_ego": {
+            "sensor_type": "lidar",
+            "extrinsic": {
+                "transform": {
+                    "translation": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": -0.33000001311302185
+                    },
+                    "rotation": {
+                        "w": -0.7071067811865472,
+                        "x": -0.0,
+                        "y": -0.0,
+                        "z": 0.7071067811865481
+                    }
+                },
+                "euler_degree": {
+                    "RotX": 0.0,
+                    "RotY": 0.0,
+                    "RotZ": -90.00000000000006
+                },
+                "calib_status": 0,
+                "information": "ego_from_footprint_RFU",
+                "calib_time": "2022-09-20 08:27:25"
+            }
+        },
+```
+
 #### gnss
 
 ```json
