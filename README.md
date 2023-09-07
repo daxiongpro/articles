@@ -6,6 +6,7 @@
 
 **九月**
 
+* [论文解读——Deformable DETR](2023_09/Deformable_DETR_paper/Deformable_DETR_paper.md)
 * [论文解读——DETR](2023_09/DETR_PAPER/detr_paper.md)
 * [数据格式说明](2023_09/tianZhun_data/tianZhun_data.md)
 
