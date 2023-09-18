@@ -6,6 +6,7 @@
 
 **九月**
 
+* [环境调试——CMT：Cross Modal Transformer](2023_09/env_CMT/env_CMT.md)
 * [论文解读——CMT：Cross Modal Transformer](2023_09/CMT_paper/CMT_paper.md)
 * [论文解读——BEVFormer](2023_09/BEVFormer_paper/BEVFormer_paper.md)
 * [论文解读——PERT](2023_09/PETR_paper/PETR_paper.md)
