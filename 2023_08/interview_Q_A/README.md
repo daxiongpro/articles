@@ -4,11 +4,11 @@
 
 常问的问题分为以下几个板块：
 
-* [计算机基础](2023_08/interview_Q_A/cs_basic.md)
+* [计算机基础](./cs_basic.md)
 * 编程语言和框架
-* [数据结构与算法](2023_08/interview_Q_A/ds_and_algorithms.md)
+* [数据结构与算法](./ds_and_algorithms.md)
 * [深度学习基础](deep_learning_basic.md)
-* [计算机视觉经典论文](2023_08/interview_Q_A/classic_paper.md)
+* [计算机视觉经典论文](./classic_paper.md)
 
 上述每个板块都写成一篇文档。
 
