@@ -214,6 +214,10 @@ def _bev_query_embed(self, ref_points, img_metas):
     return bev_embeds
 ```
 
+## 后记
+
+代码解读完整版看我的 [github](https://github.com/daxiongpro/CMT/tree/dev)。
+
 ## 日期
 
 2023/09/20：文章撰写日期
