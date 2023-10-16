@@ -66,6 +66,8 @@ docker pull pkg.geely.com/docker/daxiongpro/qdot2004nvidia:zsh
 
 修改 tag，再上传。上传教程看 harbor 网站，或者问"孙责荃"、"郭昀"。
 
+防火墙开通网址：[itsm](itsm.geely.com) 。
+
 ## 4.代码推送到 PAI 平台
 
 步骤：
@@ -76,6 +78,6 @@ docker pull pkg.geely.com/docker/daxiongpro/qdot2004nvidia:zsh
 
 ## 日期
 
-2023/07/18：更新：开通 VDI 、代码推送
-
-2023/07/14：文章撰写
+* 2023/10/16：防火墙开通网址
+* 2023/07/18：更新：开通 VDI 、代码推送
+* 2023/07/14：文章撰写
