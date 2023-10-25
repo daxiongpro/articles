@@ -4,6 +4,10 @@
 
 ## 2023
 
+**十月**
+
+* [羽毛球比赛](2023_10/badminton/rules.md)
+
 **九月**
 
 * [代码解读——CMT：Cross Modal Transformer](2023_09/code_CMT/code_CMT.md)
