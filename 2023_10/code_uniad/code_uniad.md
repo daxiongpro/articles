@@ -17,6 +17,31 @@
 * 解决方法：其实不是这句报错本身的问题，往前看对应的错误。解决前面的错误，这个报错会消失。
 
 
+## 运行报错
+
+* 运行可视化代码 `./tools/uniad_vis_result.sh` 出现
+
+```bash
+Traceback (most recent call last):
+  File "./tools/analysis_tools/visualize/run.py", line 342, in <module>
+    main(args)
+  File "./tools/analysis_tools/visualize/run.py", line 304, in main
+    viser = Visualizer(version='v1.0-trainval', predroot=args.predroot, dataroot='data/nuscenes', **render_cfg)
+  File "./tools/analysis_tools/visualize/run.py", line 66, in __init__
+    self.predictions = self._parse_predictions_multitask_pkl(predroot)
+  File "./tools/analysis_tools/visualize/run.py", line 115, in _parse_predictions_multitask_pkl
+    trajs = outputs[k][f'traj'].numpy()
+KeyError: 'traj'
+```
+
+* 解决方法：先运行
+
+```
+./tools/uniad_dist_eval.sh ./projects/configs/stage2_e2e/base_e2e.py ./ckpts/uniad_base_e2e.pth 4
+```
+
+
+
 
 
 
