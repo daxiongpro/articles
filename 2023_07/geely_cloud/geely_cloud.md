@@ -76,8 +76,25 @@ docker pull pkg.geely.com/docker/daxiongpro/qdot2004nvidia:zsh
 * 拷贝到公司电脑
 * filezillar 上传到 PAI 平台
 
+## 5.PAI 平台代码拷出
+
+总体步骤：[ 内网：PAI 平台 ----> ~~(VDI ----> 内网 windows)~~ ----> 鲁班 ] ----> [ 外网 ubuntu ]
+
+### 5.1.内网上传到鲁班
+
+鲁班网址：[点击这里](https://do.geely.com/)
+
+步骤：
+
+* 在鲁班系统新建仓库
+* 内网中，git 仓库配置 remote 为鲁班地址
+* git push 的时候，用户名填写邮箱全称 (aaa.bbb@geely.com)
+
+> 方法来自——时坤
+
 ## 日期
 
+* 2023/11/01：PAI 平台代码拷出
 * 2023/10/16：防火墙开通网址
 * 2023/07/18：更新：开通 VDI 、代码推送
 * 2023/07/14：文章撰写
