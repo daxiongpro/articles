@@ -13,7 +13,7 @@
 * 解决方法：看是哪个库报这个错。我的是 mmcv-full，重新下载 whl ，然后上传到云平台，离线安装。
 * 问题4：出现：`TypeError: FormatCode() got an unexpected keyword argument ‘verify‘`
 * 解决方法：原来yapf包的0.40.2，降低为yapf==0.40.1，问题就可解决。
-* 问题4：在训练的时候出现： `torch.distributed.elastic.multiprocessing.errors.ChildFailedError`
+* 问题5：在训练的时候出现： `torch.distributed.elastic.multiprocessing.errors.ChildFailedError`
 * 解决方法：其实不是这句报错本身的问题，往前看对应的错误。解决前面的错误，这个报错会消失。
 
 ## 运行报错
