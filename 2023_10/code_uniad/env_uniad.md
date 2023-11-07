@@ -1,4 +1,4 @@
-# 代码解读——UniAD
+# 环境调试——UniAD
 
 ## 环境安装
 
@@ -15,7 +15,6 @@
 * 解决方法：原来yapf包的0.40.2，降低为yapf==0.40.1，问题就可解决。
 * 问题4：在训练的时候出现： `torch.distributed.elastic.multiprocessing.errors.ChildFailedError`
 * 解决方法：其实不是这句报错本身的问题，往前看对应的错误。解决前面的错误，这个报错会消失。
-
 
 ## 运行报错
 
@@ -39,11 +38,6 @@ KeyError: 'traj'
 ```
 ./tools/uniad_dist_eval.sh ./projects/configs/stage2_e2e/base_e2e.py ./ckpts/uniad_base_e2e.pth 4
 ```
-
-
-
-
-
 
 ## 时间
 
