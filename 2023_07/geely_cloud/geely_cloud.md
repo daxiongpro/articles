@@ -90,10 +90,11 @@ docker pull pkg.geely.com/docker/daxiongpro/qdot2004nvidia:zsh
 * 内网中，git 仓库配置 remote 为鲁班地址
 * git push 的时候，用户名填写邮箱全称 (aaa.bbb@geely.com)
 
-> 方法来自——时坤
+> 上传的时候如果遇到 `...作者姓名‘xxx’不符合规范...` ，直接在代码仓库中 `设置 -> Push Rules -> 取消勾选`。方法来自——时坤。
 
 ## 日期
 
+* 2023/11/07：增加鲁班上传遇到的问题
 * 2023/11/01：PAI 平台代码拷出
 * 2023/10/16：防火墙开通网址
 * 2023/07/18：更新：开通 VDI 、代码推送
