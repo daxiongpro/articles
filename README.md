@@ -4,6 +4,10 @@
 
 ## 2023
 
+**十一月**
+
+* [UniAD 加入 Lidar 模态](2023_11/uniad_lidar/uniad_lidar.md)
+
 **十月**
 
 * [环境调试——UniAD](2023_10/code_uniad/code_uniad.md)
