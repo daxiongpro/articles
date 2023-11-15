@@ -16,7 +16,7 @@ A：先将 numpy 降级成 1.19.5，再安装 1.20.0。都离线用 .whl 文件�
 
 Q：包没安装
 
-A：需要安装 tomli 2.0.1
+A：需要安装 tomli==2.0.1, flash-attn==0.2.2
 
 ### 问题3
 
@@ -37,6 +37,8 @@ Q：在训练的时候出现： `torch.distributed.elastic.multiprocessing.error
 A：其实不是这句报错本身的问题，往前看对应的错误。解决前面的错误，这个报错会消失。
 
 ## 运行报错
+
+### 问题1
 
 Q：运行可视化代码 `./tools/uniad_vis_result.sh` 出现
 
@@ -59,8 +61,9 @@ A：先运行
 ./tools/uniad_dist_eval.sh ./projects/configs/stage2_e2e/base_e2e.py ./ckpts/uniad_base_e2e.pth 4
 ```
 
+
 ## 时间
 
-2023/11/09：更改格式更清楚
-
-2023/10/27：环境安装章节
+* 2023/11/15：增加 flash-attn
+* 2023/11/09：更改格式更清楚
+* 2023/10/27：环境安装章节
