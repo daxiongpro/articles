@@ -16,7 +16,7 @@ A：先将 numpy 降级成 1.19.5，再安装 1.20.0。都离线用 .whl 文件�
 
 Q：包没安装
 
-A：需要安装 tomli==2.0.1, flash-attn==0.2.2
+A：需要安装 tomli==2.0.1, flash-attn==0.2.2, spconv-cu111==2.1.21,。其中，tomli 是 uniad 中所需要的包，flash-attn 和 spconv-cu111 是 cmt 所需要的包。离线安装 spconv-cu111 的方式请看[此文](../../2023_11/pkg_install_offline/pkg_install_offline.md)。
 
 ### 问题3
 
@@ -60,7 +60,6 @@ A：先运行
 ```
 ./tools/uniad_dist_eval.sh ./projects/configs/stage2_e2e/base_e2e.py ./ckpts/uniad_base_e2e.pth 4
 ```
-
 
 ## 时间
 
