@@ -37,6 +37,28 @@ UniAD 加入 Lidar 模态相当于是在 BEVFormer 中加入 Lidar 模态。问�
 
 ### CE for Point Clouds.
 
+本项工作中，点云数据首先经过 backbone 网络，例如 VoxelNet 或者 PointPillar，对点云数据进行编码，得到 BEV 视角下的 2D featrure map。对于这个 feature map 上的每个点 (u, v)，在其高度位置上采样 k 个点(对比图像模块是深度上采样 k 个点)。采样的 k 个点可以表示为：
+
+$$
+p_k (u, v) = (u, v, h_k , 1)^T
+$$
+
+其位置编码为：
+
+$$
+p^{pc}_k (u, v) =(u ∗ u_d , v ∗ v_d , h_k , 1)
+$$
+
+其中，u_d，v_d 表示 BEV feature map 上每个 grid 的大小。
+
+最后，点云的位置编码可以表示成：
+
+$$
+Γ_{pc} (u, v) = ψ_{pc} ({p^{pc}_k (u, v),k = 1, 2, ..., h})
+$$
+
+其中，$ψ_{pc}$ 是 MLP。
+
 ### 多模态 Spatial Cross-Attention.
 
 # 日期
