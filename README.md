@@ -6,6 +6,7 @@
 
 **十一月**
 
+* [nuscenes 数据集可视化](2023_11/nuscenes_vis/nuscenes_vis.md)
 * [tmux 相关](2023_11/tmux/tmux.md)
 * [离线安装 python 库](2023_11/pkg_install_offline/pkg_install_offline.md)
 * [UniAD 加入 Lidar 模态](2023_11/uniad_lidar/uniad_lidar.md)
