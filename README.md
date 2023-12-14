@@ -4,6 +4,10 @@
 
 ## 2023
 
+**十二月**
+
+* [vscode 相关问题](2023_12/vscode/vscode.md)
+
 **十一月**
 
 * [nuscenes 数据集可视化](2023_11/nuscenes_vis/nuscenes_vis.md)
