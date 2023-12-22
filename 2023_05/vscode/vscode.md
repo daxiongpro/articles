@@ -1,8 +1,12 @@
-# 使用 vscode 调试代码
+# vscode 相关问题
+
+记录使用 vscode 时碰到的相关问题。
+
+## 1.使用 vscode 调试代码
 
 vscode 是一款代码编辑器，不是 IDE，需要手动配置一些配置文件才能够进行调试。
 
-## 调试 python 代码
+### 1.1.调试 python 代码
 
 编辑项目根目录下的 `.vscode/launch.json` 文件，如果没有这个文件，就自己创建一个。
 
@@ -54,7 +58,7 @@ vscode 是一款代码编辑器，不是 IDE，需要手动配置一些配置文
 
 保存之后，点击“运行和调试 (ctrl+shift+D)"，就可以根据 name 字段选择。这里说说如何使用 debugpy 调试。
 
-### debugpy 调试 python 代码
+#### debugpy 调试 python 代码
 
 在训练 bevfusion 代码时，作者使用了自己的库 torchpack，无法正常调试。因此使用 debugpy 调试。调试方法如下。
 
@@ -72,7 +76,7 @@ vscode 是一款代码编辑器，不是 IDE，需要手动配置一些配置文
   > 此时程序执行，并停在断点处。
   >
 
-## 调试 C++ 代码
+### 1.2.调试 C++ 代码
 
 1.CMakeLists 末尾添加如下代码：
 
@@ -106,16 +110,34 @@ set(CMAKE_BUILD_TYPE "Debug") # 断点错位问题解决
 
 3.在主函数所在的文件中，按下 f5 可以调试
 
-## 文件夹折叠同时打开问题
+## 2.文件夹折叠同时打开问题
 
-vscode 中，如果 A 文件夹下只有一个 B 文件夹，那么点击 A 的时候会同时打开 B。
+问题：vscode 中，如果 A 文件夹下只有一个 B 文件夹，那么点击 A 的时候会同时打开 B。
 
-取消方法：设置里搜 Explorer:Compact Folders，取消对钩。
+回答：取消方法——设置里搜 Explorer:Compact Folders，取消对钩。
 
-> 参考资料：[关于 VSCode 文件夹折叠问题](https://blog.csdn.net/Khada_Finger/article/details/129922053)
+> 来自：[关于 VSCode 文件夹折叠问题](https://blog.csdn.net/Khada_Finger/article/details/129922053)
+
+## 3.文件树自动展开
+
+问题：代码跳转时，打开某个新文件，左边的树状目录也会跟着展开。如何取消？
+
+回答：文件-->首选项-->设置-->在搜索栏中搜索：explorer.autoReveal;    去掉勾选即可。
+
+> 来自：[VS CODE 设置取消打开文件目录的自动定位跟踪功能](https://blog.csdn.net/kunkliu/article/details/124107072)
+
+## 4.打开新文件覆盖
+
+问题：代码跳转或者搜索代码时，打开某个新文件，顶部文件栏，会覆盖旧文件。如何取消？
+
+回答：打开 `文件-->首选项-->设置` 窗口。在 `编辑管理` 选项卡下拉找到 `Enable Preview` ， **去掉这个选项的勾** 。
+
+> 来自：[VS Code 设置单击打开新文件窗口，不覆盖前一个窗口](https://blog.csdn.net/qq_38463737/article/details/125505154)
 
 # 日期
 
+* 2023/12/22：整合 2023_12 的 vscode 相关问题
+* 2023/12/13：文件树自动展开、打开新文件覆盖
 * 2023/11/21：文件夹折叠同时打开问题
 * 2023/07/24：添加 c++ 调试步骤
 * 2023/05/19：创作本文
