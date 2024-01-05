@@ -1,5 +1,7 @@
 # bevfusion 训练自定义数据集
 
+2024/01/05 更新：之前的文章大段代码看起来纷繁复杂，且对应到自己的项目中，代码必然需要更换。故删除部分代码，并添加相关注释，使得文章整体脉络更清楚。
+
 bevfusion 是一个融合了图像和雷达的 3D 目标检测网络，在当时 nuscenes 数据集上达到了 SOTA，其[官方 github 点击此处](https://github.com/mit-han-lab/bevfusion)。本文介绍如如何使用自定义数据集 meg，来训练 bevfusion 。之前的文章“[使用 mmdet3d 框架训练自定义数据集](https://zhuanlan.zhihu.com/p/632104137)"中，介绍了如何使用 mmdetection3d，训练自定义数据集。由于 bevfusion 也是基于 mmdetection3d 这个仓库，因此，可以参考这篇文章来处理数据，只不过在数据预处理和加载部分，要同时处理点云和图像两种模态的数据。
 
 在做项目的时候，建议不要在原作者源码上修改，而要充分利用面向对象的继承、多态的特性，新建源代码文件，以包导入的方式进行编程。在这里，我们在项目根目录(bevfusion)下新建 projects 文件夹，然后在这个文件夹下新建项目。项目目录如下：
@@ -117,18 +119,7 @@ import math
 
 
 def get_train_val_scenes(root_path):
-    """
-    划分训练集和测试集
-    """
-    p = osp.join(root_path, 'jsons')
-    all_scenes = os.listdir(p)
-    all_scenes = [scenes.split('.')[0] for scenes in all_scenes]
-
-    test_num = math.floor(len(all_scenes) / 10)  # 取 1/10 场景为测试
-    train_num = len(all_scenes) - test_num
-    train_scenes = all_scenes[:train_num]
-    val_scenes = all_scenes[train_num:]
-
+    # 划分训练集和测试集...
     return train_scenes, val_scenes  # ['0', '1', '2', ...]
 
 
@@ -162,27 +153,9 @@ def _fill_trainval_infos(root_path, train_scenes, val_scenes, test=False):
     available_scene_names = train_scenes + val_scenes
 
     for sid, scenes_json in enumerate(available_scene_names):
-        # dataset json
-        with open(os.path.join(root_path, 'jsons', scenes_json + '.json'), 'r') as jsonread:
-            jsondata = json.load(jsonread)
-
-        for sample in jsondata['frames']:
+        for 每帧数据:
             if sample['is_key_frame']:
-                print(scenes_json, '---', sample['frame_id'], ' is key frame')
-                frame_id = sample['frame_id'] + sid * 10000
-                assert not root_path.endswith('/'), "root_path should not end with an '/' sign"
-                lidar_path = osp.join(root_path, sample['sensor_data']['fuser_lidar']['file_path'])
-                # lidar_path = sample['sensor_data']['front_lidar']['file_path']
-                timestamp = eval(sample['sensor_data']['fuser_lidar']['timestamp']) * int(1000) * int(1000)
-                lidar2ego_info = jsondata["calibrated_sensors"]['lidar_ego']['extrinsic']['transform']
-                lidar2ego_translation = np.array([lidar2ego_info['translation']['x'],
-                                                  lidar2ego_info['translation']['y'],
-                                                  lidar2ego_info['translation']['z']])
-                lidar2ego_rotation = np.array(Quaternion([lidar2ego_info['rotation']['w'],
-                                                          lidar2ego_info['rotation']['x'],
-                                                          lidar2ego_info['rotation']['y'],
-                                                          lidar2ego_info['rotation']['z']]
-                                                         ).rotation_matrix)
+                # 获取数据集的 info...
                 # dataset infos
                 info = {
                     "frame_id": frame_id,
@@ -206,30 +179,7 @@ def _fill_trainval_infos(root_path, train_scenes, val_scenes, test=False):
                     "cam_front_right_120"
                 ]
                 for cam in camera_types:
-                    cam_path = osp.join(root_path, sample['sensor_data'][cam]['file_path'])
-                    cam_intrinsics = np.array(
-                        jsondata["calibrated_sensors"][cam]["intrinsic"]["K"],
-                    )
-
-                    lidar2cam_translation = np.array([
-                        jsondata["calibrated_sensors"][cam]["extrinsic"]['transform']['translation']['x'],
-                        jsondata["calibrated_sensors"][cam]["extrinsic"]['transform']['translation']['y'],
-                        jsondata["calibrated_sensors"][cam]["extrinsic"]['transform']['translation']['z']]
-                    )
-                    lidar2cam_rotation = np.array(Quaternion([
-                        jsondata["calibrated_sensors"][cam]["extrinsic"]['transform']['rotation']['w'],
-                        jsondata["calibrated_sensors"][cam]["extrinsic"]['transform']['rotation']['x'],
-                        jsondata["calibrated_sensors"][cam]["extrinsic"]['transform']['rotation']['y'],
-                        jsondata["calibrated_sensors"][cam]["extrinsic"]['transform']['rotation']['z']]
-                    ).rotation_matrix)
-                    cam2lidar_rotation = np.linalg.inv(lidar2cam_rotation)
-                    cam2lidar_translation = np.dot(cam2lidar_rotation, -lidar2cam_translation.T)
-
-                    T_lidar_to_pixel = np.array(jsondata["calibrated_sensors"][cam]
-                                                ['T_lidar_to_pixel'], dtype=np.float32)
-                    lidar2img = np.eye(4).astype(np.float32)
-                    lidar2img[:3, :3] = T_lidar_to_pixel[:3, :3]
-                    lidar2img[:3, 3] = T_lidar_to_pixel[:3, 3:].T
+                    # 获取相机内外参，旋转矩阵等...
                     cam_info = dict(
                         camera_path=cam_path,
                         lidar2img=lidar2img,
@@ -243,34 +193,10 @@ def _fill_trainval_infos(root_path, train_scenes, val_scenes, test=False):
 
                 # obtain annotation
                 if not test:
-                    annotations = sample['labels']
-                    locs = np.array([[box['xyz_lidar']['x'],
-                                      box['xyz_lidar']['y'],
-                                      box['xyz_lidar']['z']] for box in annotations]
-                                    ).reshape(-1, 3)
-                    dims = np.array([[box['lwh']['w'],
-                                      box['lwh']['l'],
-                                      box['lwh']['h']] for box in annotations]
-                                    ).reshape(-1, 3)
-                    locs[:, 2] = locs[:, 2] - dims[:, 2] / 2.0  # mmdet3d 中以底边中心为中心点
-                    rots = np.array([Quaternion([box['angle_lidar']['w'],
-                                                 box['angle_lidar']['x'],
-                                                 box['angle_lidar']['y'],
-                                                 box['angle_lidar']['z']]
-                                                ).yaw_pitch_roll[0] for box in annotations]
-                                    ).reshape(-1, 1)
-
-                    names = [box['category'] for box in annotations]
-                    for i in range(len(names)):
-                        if names[i] in MegDataset.NameMapping:
-                            names[i] = MegDataset.NameMapping[names[i]]
-                    names = np.array(names)
-
-                    # we need to convert rot to SECOND format.
-                    gt_boxes = np.concatenate([locs, dims, -rots - np.pi / 2], axis=1)
-                    assert len(gt_boxes) == len(annotations), f"{len(gt_boxes)}, {len(annotations)}"
+                    # 获取标签数据...
                     info["gt_boxes"] = gt_boxes
                     info["gt_names"] = names
+                    # 获取其他数据...
                     info["num_lidar_pts"] = np.array([a["num_lidar_pts"] for a in annotations])
                     info["is_2d_visible"] = np.array([a["is_2d_visible"] for a in annotations])
 
@@ -425,52 +351,6 @@ from ...mmdet3d.evaluate.map import calculate_map
 
 @DATASETS.register_module()
 class MegDataset(Custom3DDataset):
-    NameMapping = {
-        "小汽车": "car",
-        "汽车": "car",
-        "货车": "truck",
-        "工程车": "construction_vehicle",
-        "巴士": "bus",
-        "摩托车": "motorcycle",
-        "自行车": "bicycle",
-        "三轮车": "tricycle",
-        "骑车人": "cyclist",
-        "骑行的人": "cyclist",
-        "人": "pedestrian",
-        "行人": "pedestrian",
-        "其它": "other",
-        "残影": "ghost",
-        "蒙版": "masked_area",
-        "其他": "other",
-        "拖挂": "other",
-        "锥桶": "traffic_cone",
-        "防撞柱": "traffic_cone"
-    }
-
-    ErrNameMapping = {
-        "trans_err": "mATE",
-        "scale_err": "mASE",
-        "orient_err": "mAOE",
-        "vel_err": "mAVE",
-        "attr_err": "mAAE",
-    }
-
-    CLASSES = (
-        "car",
-        "truck",
-        "construction_vehicle",
-        "bus",
-        "motorcycle",
-        "bicycle",
-        "tricycle",
-        "cyclist",
-        "pedestrian",
-        "other",
-        "ghost",
-        "masked_area",
-        "traffic_cone"
-    )
-
     def __init__(
         self,
         ann_file,
@@ -486,30 +366,7 @@ class MegDataset(Custom3DDataset):
         test_mode=False,
         use_valid_flag=False,
     ) -> None:
-        self.load_interval = load_interval
-        self.use_valid_flag = use_valid_flag
-        super().__init__(
-            dataset_root=dataset_root,
-            ann_file=ann_file,
-            pipeline=pipeline,
-            classes=object_classes,
-            modality=modality,
-            box_type_3d=box_type_3d,
-            filter_empty_gt=filter_empty_gt,
-            test_mode=test_mode,
-        )
-
-        self.with_velocity = with_velocity
-        self.data_config = data_config
-
-        if self.modality is None:
-            self.modality = dict(
-                use_camera=False,
-                use_lidar=True,
-                use_radar=False,
-                use_map=False,
-                use_external=False,
-            )
+        # 设置数据集的基本信息...
 
     def get_cat_ids(self, idx):
         """Get category distribution of single scene.
@@ -536,19 +393,7 @@ class MegDataset(Custom3DDataset):
         return cat_ids
 
     def load_annotations(self, ann_file):
-        """Load annotations from ann_file.
-
-        Args:
-            ann_file (str): Path of the annotation file.
-
-        Returns:
-            list[dict]: List of annotations sorted by timestamps.
-        """
-        data = mmcv.load(ann_file)
-        data_infos = list(sorted(data["infos"], key=lambda e: e["timestamp"]))
-        data_infos = data_infos[:: self.load_interval]
-        self.metadata = data["metadata"]
-        self.version = self.metadata["version"]
+        # 从 ann_file 中读取一些基本信息，如 metas...
         return data_infos
 
     def get_data_info(self, index: int) -> Dict[str, Any]:
@@ -559,58 +404,10 @@ class MegDataset(Custom3DDataset):
             sweeps=info["sweeps"],
             timestamp=info["timestamp"]
         )
-        # lidar to ego transform
-        # lidar2ego          = np.eye(4).astype(np.float32)
-        # lidar2ego[:3, :3]  = info["lidar2ego_rotation"]
-        # lidar2ego[:3, 3]   = info["lidar2ego_translation"]
-        # input_dict["lidar2ego"]  = lidar2ego
 
         if self.modality["use_camera"]:
-            image_paths = []
-            lidar2cameras = []
-            lidar2images = []
-            camera2ego = []
-            cam_intrinsics = []
-            camera2lidars = []
-            lidar2image_1 = []
-
-            # info["cams"]:['cam_back_120', 'cam_back_left_120', 'cam_back_right_120', 'cam_front_30', 'cam_front_70_left',
-            # 'cam_front_70_right', 'cam_front_left_120', 'cam_front_right_120']
-            for camera_type, camera_info in info["cams"].items():
-                if camera_type in self.data_config['cams']:
-                    image_paths.append(camera_info["camera_path"])
-
-                    # lidar to camera transform
-                    lidar2camera_rt = np.eye(4).astype(np.float32)
-                    lidar2camera_rt[:3, :3] = camera_info['lidar2cam_rotation']
-                    lidar2camera_rt[:3, 3] = camera_info['lidar2cam_translation']
-                    lidar2cameras.append(lidar2camera_rt)
-
-                    # camera to lidar transform
-                    camera2lidar_rt = np.array(np.linalg.inv(lidar2camera_rt), dtype=np.float32)
-                    camera2lidars.append(camera2lidar_rt)
-
-                    # camera intrinsics
-                    camera_intrinsics = np.eye(4).astype(np.float32)
-                    camera_intrinsics[:3, :3] = camera_info['camera_intrinsics']
-                    cam_intrinsics.append(camera_intrinsics)
-
-                    # lidar to image transform
-                    lidar2img = camera_info['lidar2img']
-                    lidar2images.append(lidar2img)
-
-                    # lidar to image transform
-                    cam_intrins = np.eye(4).astype(np.float32)
-                    cam_intrins_1 = camera_info['camera_intrinsics']
-                    cam_intrins_1[:2, :2] = cam_intrins_1[:2, :2] / 2.0
-                    cam_intrins_1[:2, 2:] = cam_intrins_1[:2, 2:] / 2.0
-                    cam_intrins[:3, :3] = cam_intrins_1
-                    lidar2image = cam_intrins @ lidar2camera_rt
-                    lidar2image_1.append(lidar2image)
-
-                    # camera to ego transformn
-                    cam2ego = np.eye(4).astype(np.float32)
-                    camera2ego.append(cam2ego)
+            for 6 个相机:
+                # 从 6 个相机读取相机内外参、坐标转换矩阵...
 
             input_dict.update(
                 dict(
@@ -645,39 +442,9 @@ class MegDataset(Custom3DDataset):
                 - gt_labels_3d (np.ndarray): Labels of ground truths.
                 - gt_names (list[str]): Class names of ground truths.
         """
+        # 根据 index 获取对应的标签...
         info = self.data_infos[index]
-        # filter out bbox containing no points
-        if self.use_valid_flag:
-            mask = info["valid_flag"]
-        else:
-            mask = info["num_lidar_pts"] > 0
-        gt_bboxes_3d = info["gt_boxes"][mask]
-        gt_names_3d = info["gt_names"][mask]
-        gt_labels_3d = []
-        for cat in gt_names_3d:
-            if cat in self.CLASSES:
-                gt_labels_3d.append(self.CLASSES.index(cat))
-            else:
-                gt_labels_3d.append(-1)
-
-        gt_labels_3d = np.array(gt_labels_3d)
-        label_mask = gt_labels_3d >= 0
-        gt_labels_3d = gt_labels_3d[label_mask]
-        gt_bboxes_3d = gt_bboxes_3d[label_mask]  # TODO 过滤非指定类别的信息
-
-        if self.with_velocity:
-            gt_velocity = info["gt_velocity"][mask]
-            nan_mask = np.isnan(gt_velocity[:, 0])
-            gt_velocity[nan_mask] = [0.0, 0.0]
-            gt_bboxes_3d = np.concatenate([gt_bboxes_3d, gt_velocity], axis=-1)
-
-        # the nuscenes box center is [0.5, 0.5, 0.5], we change it to be
-        # the same as KITTI (0.5, 0.5, 0)
-        # haotian: this is an important change: from 0.5, 0.5, 0.5 -> 0.5, 0.5, 0
-        gt_bboxes_3d = LiDARInstance3DBoxes(
-            gt_bboxes_3d, box_dim=gt_bboxes_3d.shape[-1], origin=(0.5, 0.5, 0)
-        ).convert_to(self.box_mode_3d)
-
+        # filter out bbox containing no points...
         anns_results = dict(
             gt_bboxes_3d=gt_bboxes_3d,
             gt_labels_3d=gt_labels_3d,
@@ -696,34 +463,11 @@ class MegDataset(Custom3DDataset):
         tmp_json = osp.join(tmp_dir.name, "metrics_summary.json")
         mmcv.dump(metrics_dict, tmp_json)
 
-        # self.metric_table(tmp_json)  # 表格形式输出评价指标
-        # self.metric_dict(tmp_json)  # 字典形式输出评价指标
-
         tmp_dir.cleanup()
         return metrics_dict
 
     def calc_metrics(self, results, score_thr=0.5):
-        #  results[0]: dict_keys(['boxes_3d', 'scores_3d', 'labels_3d'])
-        mAP_list = []  # 存放每一帧的 mAP
-        for frame_i, (frame_gt, frame_pred) in enumerate(zip(self.data_infos, results)):
-            gt_boxes_list = [[(0, 0, 0, 0, 0, 0, 0)] for i in range(len(self.CLASSES))]
-            pred_boxes_list = [[(0, 0, 0, 0, 0, 0, 0)] for i in range(len(self.CLASSES))]
-            for gt_box, gt_label in zip(frame_gt['gt_boxes'], frame_gt['gt_names']):
-                if str(gt_label) != 'masked_area':  # 过滤掉对象车道蒙板
-                    gt_label_idx = self.CLASSES.index(str(gt_label))
-                    gt_boxes_list[gt_label_idx].append(gt_box)
-
-            for pred_box, pred_score, pred_label_idx in zip(frame_pred['boxes_3d'], frame_pred['scores_3d'], frame_pred['labels_3d']):
-                if pred_score >= score_thr:
-                    pred_boxes_list[int(pred_label_idx)].append(pred_box)
-
-            # 计算单帧 mAP
-            mAP = calculate_map(gt_boxes_list, pred_boxes_list, iou_threshold=0.5)
-            print("frame_{} mAP is {}:".format(frame_i, mAP))
-            mAP_list.append(mAP)
-
-        mAP_list_filter_0 = list(filter(lambda x: x != 0, mAP_list))  # 去掉 0
-        mAP = np.mean(mAP_list_filter_0)
+        # mAP 计算...
         metrics_summary = {
             'mAP': mAP,
         }
@@ -740,7 +484,7 @@ class MegDataset(Custom3DDataset):
 
 ```bash
 # projects/Meg_dataset/bash_runner/create_data.sh
-ROOT_PATH_PROJ='/home/daxiongpro/code/bevfusion/'
+ROOT_PATH_PROJ='/path/to/your//bevfusion/'
 ROOT_PATH_DATASET=${ROOT_PATH_PROJ}'data/meg_data/new_custom_data'
 echo ${ROOT_PATH_DATASET}
 python projects/Meg_dataset/tools/create_data.py meg --root-path ${ROOT_PATH_DATASET} --out-dir ${ROOT_PATH_DATASET} --extra-tag meg
@@ -775,67 +519,6 @@ class BEVFusionSimple(BEVFusion):
     """
     原版的 BevFusion 在 forward 里传入了一堆没用的参数。这里将其删除，只保留有用的参数。
     """
-
-    def extract_camera_features(
-            self,
-            x,
-            camera2lidar,
-            camera_intrinsics,
-            img_aug_matrix,
-            lidar_aug_matrix
-    ) -> torch.Tensor:
-        B, N, C, H, W = x.size()
-        x = x.view(B * N, C, H, W)
-
-        x = self.encoders["camera"]["backbone"](x)
-        x = self.encoders["camera"]["neck"](x)
-
-        if not isinstance(x, torch.Tensor):
-            x = x[0]
-
-        BN, C, H, W = x.size()
-        x = x.view(B, int(BN / B), C, H, W)
-
-        logging.info("ViewTransformer is LSSTransform_Img")
-        x = self.encoders["camera"]["vtransform"](
-            x,
-            camera2lidar,
-            camera_intrinsics,
-            img_aug_matrix,
-            lidar_aug_matrix
-        )
-        return x
-
-    @torch.no_grad()
-    @force_fp32()
-    def voxelize(self, points):
-        feats, coords, sizes = [], [], []
-        for k, res in enumerate(points):
-            ret = self.encoders["lidar"]["voxelize"](res)
-            if len(ret) == 3:
-                # hard voxelize
-                f, c, n = ret
-            else:
-                assert len(ret) == 2
-                f, c = ret
-                n = None
-            feats.append(f)
-            coords.append(F.pad(c, (1, 0), mode="constant", value=k))
-            if n is not None:
-                sizes.append(n)
-
-        feats = torch.cat(feats, dim=0)
-        coords = torch.cat(coords, dim=0)
-        if len(sizes) > 0:
-            sizes = torch.cat(sizes, dim=0)
-            if self.voxelize_reduce:
-                feats = feats.sum(dim=1, keepdim=False) / sizes.type_as(feats).view(
-                    -1, 1
-                )
-                feats = feats.contiguous()
-
-        return feats, coords, sizes
-
     @auto_fp16(apply_to=("img"))
     def forward(
             self,
@@ -852,82 +535,7 @@ class BEVFusionSimple(BEVFusion):
             gt_labels_3d=None,
             **kwargs,
     ):
-        features = []
-        # for sensor in self.encoders:
-        for sensor in (
-                self.encoders if self.training else list(self.encoders.keys())[::-1]
-        ):
-            if sensor == "camera":
-                feature = self.extract_camera_features(
-                    img,
-                    camera2lidar,
-                    camera_intrinsics,
-                    img_aug_matrix,
-                    lidar_aug_matrix,
-                )
-            elif sensor == "lidar":
-                feature = self.extract_lidar_features(points)
-            else:
-                raise ValueError(f"unsupported sensor: {sensor}")
-            features.append(feature)
-
-        if not self.training:
-            # avoid OOM
-            features = features[::-1]
-
-        if self.fuser is not None:
-            x = self.fuser(features)
-        else:
-            assert len(features) == 1, features
-            x = features[0]
-
-        batch_size = x.shape[0]
-
-        x = self.decoder["backbone"](x)
-        x = self.decoder["neck"](x)
-
-        if self.training:
-            outputs = {}
-            for type, head in self.heads.items():
-                if type == "object":
-                    pred_dict = head(x, metas)
-                    losses = head.loss(gt_bboxes_3d, gt_labels_3d, pred_dict)
-                elif type == "map":
-                    losses = head(x, gt_masks_bev)
-                else:
-                    raise ValueError(f"unsupported head: {type}")
-                for name, val in losses.items():
-                    if val.requires_grad:
-                        outputs[f"loss/{type}/{name}"] = val * self.loss_scale[type]
-                    else:
-                        outputs[f"stats/{type}/{name}"] = val
-            return outputs
-        else:
-            outputs = [{} for _ in range(batch_size)]
-            for type, head in self.heads.items():
-                if type == "object":
-                    pred_dict = head(x, metas)
-                    bboxes = head.get_bboxes(pred_dict, metas)
-                    for k, (boxes, scores, labels) in enumerate(bboxes):
-                        outputs[k].update(
-                            {
-                                "boxes_3d": boxes.to("cpu"),
-                                "scores_3d": scores.cpu(),
-                                "labels_3d": labels.cpu(),
-                            }
-                        )
-                elif type == "map":
-                    logits = head(x)
-                    for k in range(batch_size):
-                        outputs[k].update(
-                            {
-                                "masks_bev": logits[k].cpu(),
-                                "gt_masks_bev": gt_masks_bev[k].cpu(),
-                            }
-                        )
-                else:
-                    raise ValueError(f"unsupported head: {type}")
-            return outputs
+        # 删除原版 bevfusion 没用的参数，并整理代码...
 
 ```
 
@@ -958,28 +566,7 @@ class LSSTransformSimple(LSSTransform):
         img_aug_matrix,
         lidar_aug_matrix
     ):
-        intrins = camera_intrinsics[..., :3, :3]
-        post_rots = img_aug_matrix[..., :3, :3]
-        post_trans = img_aug_matrix[..., :3, 3]
-        camera2lidar_rots = camera2lidar[..., :3, :3]
-        camera2lidar_trans = camera2lidar[..., :3, 3]
-
-        extra_rots = lidar_aug_matrix[..., :3, :3]
-        extra_trans = lidar_aug_matrix[..., :3, 3]
-
-        geom = self.get_geometry(
-            camera2lidar_rots,
-            camera2lidar_trans,
-            intrins,
-            post_rots,
-            post_trans,
-            extra_rots=extra_rots,
-            extra_trans=extra_trans
-        )
-
-        x = self.get_cam_feats(img)
-        x = self.bev_pool(geom, x)
-        return x
+        # 删除原版 bevfusion 没用的参数，并整理代码...
 
 ```
 
@@ -996,65 +583,6 @@ from mmdet.models import BACKBONES
 from mmdet3d.models.backbones.pillar_encoder import PointPillarsEncoder
 
 __all__ = ["PointPillarsEncoderWithConv4x", "ConvTest"]
-
-
-class RestNetBasicBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, stride):
-        super(RestNetBasicBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=stride, padding=1)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-
-    def forward(self, x):
-        output = self.conv1(x)
-        output = F.relu(self.bn1(output))
-        output = self.conv2(output)
-        output = self.bn2(output)
-        return F.relu(x + output)
-
-
-class RestNetDownBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, stride):
-        super(RestNetDownBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride[0], padding=1)
-        self.bn1 = nn.BatchNorm2d(out_channels)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=stride[1], padding=1)
-        self.bn2 = nn.BatchNorm2d(out_channels)
-        self.extra = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride[0], padding=0),
-            nn.BatchNorm2d(out_channels)
-        )
-
-    def forward(self, x):
-        extra_x = self.extra(x)
-        output = self.conv1(x)
-        out = F.relu(self.bn1(output))
-        out = self.conv2(out)
-        out = self.bn2(out)
-        return F.relu(extra_x + out)
-
-
-@BACKBONES.register_module()
-class ConvTest(nn.Module):
-    def __init__(self):
-        super(ConvTest, self).__init__()
-
-        self.layer1 = nn.Sequential(RestNetBasicBlock(64, 64, 1),
-                                    RestNetBasicBlock(64, 64, 1))
-
-        self.layer2 = nn.Sequential(RestNetDownBlock(64, 128, [2, 1]),
-                                    RestNetBasicBlock(128, 128, 1))
-
-        self.layer3 = nn.Sequential(RestNetDownBlock(128, 256, [2, 1]),
-                                    RestNetBasicBlock(256, 256, 1))
-
-    def forward(self, x):
-        out = self.layer1(x)
-        out = self.layer2(out)
-        out = self.layer3(out)
-        return out
-
 
 @BACKBONES.register_module()
 class PointPillarsEncoderWithConv4x(PointPillarsEncoder):
@@ -1074,7 +602,7 @@ class PointPillarsEncoderWithConv4x(PointPillarsEncoder):
 
     def forward(self, feats, coords, batch_size, sizes):
         x = super().forward(feats, coords, batch_size, sizes)
-        x = self.pts_conv_encoder(x)
+        # 使用 resnet 进行下采样...
 
         return x
 
@@ -1100,210 +628,6 @@ class CenterHeadWithoutVel(CenterHead):
     """
     注释掉 CenterHead 的 vx,vy,vel 等速度信息
     """
-
-    def get_targets_single(self, gt_bboxes_3d, gt_labels_3d):
-        """Generate training targets for a single sample.
-        Args:
-            gt_bboxes_3d (:obj:`LiDARInstance3DBoxes`): Ground truth gt boxes.
-            gt_labels_3d (torch.Tensor): Labels of boxes.
-        Returns:
-            tuple[list[torch.Tensor]]: Tuple of target including \
-                the following results in order.
-                - list[torch.Tensor]: Heatmap scores.
-                - list[torch.Tensor]: Ground truth boxes.
-                - list[torch.Tensor]: Indexes indicating the position \
-                    of the valid boxes.
-                - list[torch.Tensor]: Masks indicating which boxes \
-                    are valid.
-        """
-        device = gt_labels_3d.device
-        gt_bboxes_3d = torch.cat(
-            (gt_bboxes_3d.gravity_center, gt_bboxes_3d.tensor[:, 3:]), dim=1
-        ).to(device)
-        max_objs = self.train_cfg["max_objs"] * self.train_cfg["dense_reg"]
-        grid_size = torch.tensor(self.train_cfg["grid_size"])
-        pc_range = torch.tensor(self.train_cfg["point_cloud_range"])
-        voxel_size = torch.tensor(self.train_cfg["voxel_size"])
-
-        feature_map_size = torch.div(
-            grid_size[:2],
-            self.train_cfg["out_size_factor"],
-            rounding_mode="trunc",
-        )
-
-        # reorganize the gt_dict by tasks
-        task_masks = []
-        flag = 0
-        for class_name in self.class_names:
-            task_masks.append(
-                [
-                    torch.where(gt_labels_3d == class_name.index(i) + flag)
-                    for i in class_name
-                ]
-            )
-            flag += len(class_name)
-
-        task_boxes = []
-        task_classes = []
-        flag2 = 0
-        for idx, mask in enumerate(task_masks):
-            task_box = []
-            task_class = []
-            for m in mask:
-                task_box.append(gt_bboxes_3d[m])
-                # 0 is background for each task, so we need to add 1 here.
-                task_class.append(gt_labels_3d[m] + 1 - flag2)
-            task_boxes.append(torch.cat(task_box, axis=0).to(device))
-            task_classes.append(torch.cat(task_class).long().to(device))
-            flag2 += len(mask)
-        draw_gaussian = draw_heatmap_gaussian
-        heatmaps, anno_boxes, inds, masks = [], [], [], []
-
-        for idx, task_head in enumerate(self.task_heads):
-            heatmap = gt_bboxes_3d.new_zeros(
-                (len(self.class_names[idx]), feature_map_size[1], feature_map_size[0])
-            )
-
-            anno_box = gt_bboxes_3d.new_zeros((max_objs, 8), dtype=torch.float32)
-
-            ind = gt_labels_3d.new_zeros((max_objs), dtype=torch.int64)
-            mask = gt_bboxes_3d.new_zeros((max_objs), dtype=torch.uint8)
-
-            num_objs = min(task_boxes[idx].shape[0], max_objs)
-
-            for k in range(num_objs):
-                cls_id = task_classes[idx][k] - 1
-
-                width = task_boxes[idx][k][3]
-                length = task_boxes[idx][k][4]
-                width = width / voxel_size[0] / self.train_cfg["out_size_factor"]
-                length = length / voxel_size[1] / self.train_cfg["out_size_factor"]
-
-                if width > 0 and length > 0:
-                    radius = gaussian_radius(
-                        (length, width), min_overlap=self.train_cfg["gaussian_overlap"]
-                    )
-                    radius = max(self.train_cfg["min_radius"], int(radius))
-
-                    # be really careful for the coordinate system of
-                    # your box annotation.
-                    x, y, z = (
-                        task_boxes[idx][k][0],
-                        task_boxes[idx][k][1],
-                        task_boxes[idx][k][2],
-                    )
-
-                    coor_x = (
-                        (x - pc_range[0])
-                        / voxel_size[0]
-                        / self.train_cfg["out_size_factor"]
-                    )
-                    coor_y = (
-                        (y - pc_range[1])
-                        / voxel_size[1]
-                        / self.train_cfg["out_size_factor"]
-                    )
-
-                    center = torch.tensor(
-                        [coor_x, coor_y], dtype=torch.float32, device=device
-                    )
-                    center_int = center.to(torch.int32)
-
-                    # throw out not in range objects to avoid out of array
-                    # area when creating the heatmap
-                    if not (
-                        0 <= center_int[0] < feature_map_size[0]
-                        and 0 <= center_int[1] < feature_map_size[1]
-                    ):
-                        continue
-
-                    draw_gaussian(heatmap[cls_id], center_int[[1, 0]], radius)
-                    new_idx = k
-                    x, y = center_int[0], center_int[1]
-
-                    assert (
-                        x * feature_map_size[1] + y
-                        < feature_map_size[0] * feature_map_size[1]
-                    )
-
-                    ind[new_idx] = x * feature_map_size[1] + y
-
-                    mask[new_idx] = 1
-                    # TODO: support other outdoor dataset
-                    # vx, vy = task_boxes[idx][k][7:]
-                    rot = task_boxes[idx][k][6]
-                    box_dim = task_boxes[idx][k][3:6]
-                    if self.norm_bbox:
-                        box_dim = box_dim.log()
-                    anno_box[new_idx] = torch.cat(
-                        [
-                            center - torch.tensor([x, y], device=device),
-                            z.unsqueeze(0),
-                            box_dim,
-                            torch.sin(rot).unsqueeze(0),
-                            torch.cos(rot).unsqueeze(0),
-                            # vx.unsqueeze(0),
-                            # vy.unsqueeze(0),
-                        ]
-                    )
-
-            heatmaps.append(heatmap)
-            anno_boxes.append(anno_box)
-            masks.append(mask)
-            inds.append(ind)
-        return heatmaps, anno_boxes, inds, masks
-
-    @force_fp32(apply_to=("preds_dicts"))
-    def loss(self, gt_bboxes_3d, gt_labels_3d, preds_dicts, **kwargs):
-        """Loss function for CenterHead.
-        Args:
-            gt_bboxes_3d (list[:obj:`LiDARInstance3DBoxes`]): Ground
-                truth gt boxes.
-            gt_labels_3d (list[torch.Tensor]): Labels of boxes.
-            preds_dicts (dict): Output of forward function.
-        Returns:
-            dict[str:torch.Tensor]: Loss of heatmap and bbox of each task.
-        """
-        heatmaps, anno_boxes, inds, masks = self.get_targets(gt_bboxes_3d, gt_labels_3d)
-        loss_dict = dict()
-        for task_id, preds_dict in enumerate(preds_dicts):
-            # heatmap focal loss
-            preds_dict[0]["heatmap"] = clip_sigmoid(preds_dict[0]["heatmap"])
-            num_pos = heatmaps[task_id].eq(1).float().sum().item()
-            loss_heatmap = self.loss_cls(
-                preds_dict[0]["heatmap"], heatmaps[task_id], avg_factor=max(num_pos, 1)
-            )
-            target_box = anno_boxes[task_id]
-            # reconstruct the anno_box from multiple reg heads
-            preds_dict[0]["anno_box"] = torch.cat(
-                (
-                    preds_dict[0]["reg"],
-                    preds_dict[0]["height"],
-                    preds_dict[0]["dim"],
-                    preds_dict[0]["rot"],
-                    # preds_dict[0]["vel"],
-                ),
-                dim=1,
-            )
-
-            # Regression loss for dimension, offset, height, rotation
-            ind = inds[task_id]
-            num = masks[task_id].float().sum()
-            pred = preds_dict[0]["anno_box"].permute(0, 2, 3, 1).contiguous()
-            pred = pred.view(pred.size(0), -1, pred.size(3))
-            pred = self._gather_feat(pred, ind)
-            mask = masks[task_id].unsqueeze(2).expand_as(target_box).float()
-            isnotnan = (~torch.isnan(target_box)).float()
-            mask *= isnotnan
-
-            code_weights = self.train_cfg.get("code_weights", None)
-            bbox_weights = mask * mask.new_tensor(code_weights)
-            loss_bbox = self.loss_bbox(
-                pred, target_box, bbox_weights, avg_factor=(num + 1e-4)
-            )
-            loss_dict[f"heatmap/task{task_id}"] = loss_heatmap
-            loss_dict[f"bbox/task{task_id}"] = loss_bbox
-        return loss_dict
 
 ```
 
@@ -1714,94 +1038,21 @@ evaluation = dict(interval=24, pipeline=test_pipeline)
 
 ```python
 # projects/Meg_dataset/tools/train.py
-import argparse
-import copy
-import os
-import random
-import time
-
-import numpy as np
-import torch
-from mmcv import Config
-from torchpack import distributed as dist
-from torchpack.environ import auto_set_run_dir, set_run_dir
-from torchpack.utils.config import configs
-
-from mmdet3d.apis import train_model
-from mmdet3d.datasets import build_dataset
-from mmdet3d.models import build_model
-from mmdet3d.utils import get_root_logger, convert_sync_batchnorm, recursive_eval
+# 其余代码与原版一致...
 
 
 def main():
     dist.init()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("config", metavar="FILE", help="config file")
-    parser.add_argument("--run-dir", metavar="DIR", help="run directory")
-    args, opts = parser.parse_known_args()
+    # 其余代码与原版一致...
 
     # configs.load(args.config, recursive=True)
     # configs.update(opts)
 
     # cfg = Config(recursive_eval(configs), filename=args.config)
     cfg = Config.fromfile(args.config)
+    # 后面代码与原版一致...
 
-    torch.backends.cudnn.benchmark = cfg.cudnn_benchmark
-    torch.cuda.set_device(dist.local_rank())
-
-    if args.run_dir is None:
-        args.run_dir = auto_set_run_dir()
-    else:
-        set_run_dir(args.run_dir)
-    cfg.run_dir = args.run_dir
-
-    # dump config
-    cfg.dump(os.path.join(cfg.run_dir, "configs.yaml"))
-
-    # init the logger before other steps
-    timestamp = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-    log_file = os.path.join(cfg.run_dir, f"{timestamp}.log")
-    logger = get_root_logger(log_file=log_file)
-
-    # log some basic info
-    logger.info(f"Config:\n{cfg.pretty_text}")
-
-    # set random seeds
-    if cfg.seed is not None:
-        logger.info(
-            f"Set random seed to {cfg.seed}, "
-            f"deterministic mode: {cfg.deterministic}"
-        )
-        random.seed(cfg.seed)
-        np.random.seed(cfg.seed)
-        torch.manual_seed(cfg.seed)
-        if cfg.deterministic:
-            torch.backends.cudnn.deterministic = True
-            torch.backends.cudnn.benchmark = False
-
-    datasets = [build_dataset(cfg.data.train)]
-
-    model = build_model(cfg.model)
-    model.init_weights()
-    if cfg.get("sync_bn", None):
-        if not isinstance(cfg["sync_bn"], dict):
-            cfg["sync_bn"] = dict(exclude=[])
-        model = convert_sync_batchnorm(model, exclude=cfg["sync_bn"]["exclude"])
-
-    logger.info(f"Model:\n{model}")
-    train_model(
-        model,
-        datasets,
-        cfg,
-        distributed=True,
-        validate=True,
-        timestamp=timestamp,
-    )
-
-
-if __name__ == "__main__":
-    main()
 
 ```
 
@@ -1837,57 +1088,11 @@ sh projects/Meg_dataset/bash_runner/train.sh
 
 ```python
 # projects/Meg_dataset/tools/visualize.py
-import argparse
-import copy
-import os
-
-import mmcv
-import numpy as np
-import torch
-from mmcv import Config
-from mmcv.parallel import MMDistributedDataParallel, MMDataParallel
-from mmcv.runner import load_checkpoint
-from torchpack import distributed as dist
-from torchpack.utils.config import configs
-# from torchpack.utils.tqdm import tqdm
-from tqdm import tqdm
-
-from mmdet3d.core import LiDARInstance3DBoxes
-from projects.Meg_dataset.mmdet3d.core.visualize import visualize_camera, visualize_lidar, visualize_map
-from mmdet3d.datasets import build_dataloader, build_dataset
-from mmdet3d.models import build_model
-
-
-def recursive_eval(obj, globals=None):
-    if globals is None:
-        globals = copy.deepcopy(obj)
-
-    if isinstance(obj, dict):
-        for key in obj:
-            obj[key] = recursive_eval(obj[key], globals)
-    elif isinstance(obj, list):
-        for k, val in enumerate(obj):
-            obj[k] = recursive_eval(val, globals)
-    elif isinstance(obj, str) and obj.startswith("${") and obj.endswith("}"):
-        obj = eval(obj[2:-1], globals)
-        obj = recursive_eval(obj, globals)
-
-    return obj
-
+# 其余代码与原版一致...
 
 def main() -> None:
     # dist.init()
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("config", metavar="FILE")
-    parser.add_argument("--mode", type=str, default="pred", choices=["gt", "pred"])
-    parser.add_argument("--checkpoint", type=str, default=None)
-    parser.add_argument("--split", type=str, default="val", choices=["train", "val"])
-    parser.add_argument("--bbox-classes", nargs="+", type=int, default=None)
-    parser.add_argument("--bbox-score", type=float, default=0.2)
-    parser.add_argument("--map-score", type=float, default=0.5)
-    parser.add_argument("--out-dir", type=str, default="viz")
-    args, opts = parser.parse_known_args()
+    # 其余代码与原版一致...
 
 #     configs.load(args.config, recursive=True)
 #     configs.update(opts)
@@ -1895,18 +1100,7 @@ def main() -> None:
 
     cfg = Config.fromfile(args.config)
 
-    torch.backends.cudnn.benchmark = cfg.cudnn_benchmark
-    torch.cuda.set_device(dist.local_rank())
-
-    # build the dataloader
-    dataset = build_dataset(cfg.data[args.split])
-    dataflow = build_dataloader(
-        dataset,
-        samples_per_gpu=1,
-        workers_per_gpu=cfg.data.workers_per_gpu,
-        dist=True,
-        shuffle=False,
-    )
+    # 其余代码与原版一致...
 
     # build the model and load checkpoint
     if args.mode == "pred":
@@ -1921,92 +1115,7 @@ def main() -> None:
         model = MMDataParallel(model, device_ids=[0])
         model.eval()
 
-    for data in tqdm(dataflow):
-        metas = data["metas"].data[0][0]
-        # name = "{}-{}".format(metas["timestamp"], metas["token"])
-        name = "{}".format(metas["timestamp"])
-
-        if args.mode == "pred":
-            with torch.inference_mode():
-                outputs = model(**data)
-
-        if args.mode == "gt" and "gt_bboxes_3d" in data:
-            bboxes = data["gt_bboxes_3d"].data[0][0].tensor.numpy()
-            labels = data["gt_labels_3d"].data[0][0].numpy()
-
-            if args.bbox_classes is not None:
-                indices = np.isin(labels, args.bbox_classes)
-                bboxes = bboxes[indices]
-                labels = labels[indices]
-
-            bboxes[..., 2] -= bboxes[..., 5] / 2
-            bboxes = LiDARInstance3DBoxes(bboxes, box_dim=9)
-        elif args.mode == "pred" and "boxes_3d" in outputs[0]:
-            bboxes = outputs[0]["boxes_3d"].tensor.numpy()
-            scores = outputs[0]["scores_3d"].numpy()
-            labels = outputs[0]["labels_3d"].numpy()
-
-            if args.bbox_classes is not None:
-                indices = np.isin(labels, args.bbox_classes)
-                bboxes = bboxes[indices]
-                scores = scores[indices]
-                labels = labels[indices]
-
-            if args.bbox_score is not None:
-                indices = scores >= args.bbox_score
-                bboxes = bboxes[indices]
-                scores = scores[indices]
-                labels = labels[indices]
-
-            # bboxes[..., 2] -= bboxes[..., 5] / 2
-            bboxes = LiDARInstance3DBoxes(bboxes, box_dim=7)
-        else:
-            bboxes = None
-            labels = None
-
-        if args.mode == "gt" and "gt_masks_bev" in data:
-            masks = data["gt_masks_bev"].data[0].numpy()
-            masks = masks.astype(np.bool)
-        elif args.mode == "pred" and "masks_bev" in outputs[0]:
-            masks = outputs[0]["masks_bev"].numpy()
-            masks = masks >= args.map_score
-        else:
-            masks = None
-
-        if "img" in data:
-            for k, image_path in enumerate(metas["filename"]):
-                image = mmcv.imread(image_path)
-                visualize_camera(
-                    os.path.join(args.out_dir, f"camera-{k}", f"{name}.png"),
-                    image,
-                    bboxes=bboxes,
-                    labels=labels,
-                    transform=metas["lidar2image"][k],
-                    classes=cfg.object_classes,
-                )
-
-        if "points" in data:
-            lidar = data["points"].data[0][0].numpy()
-            visualize_lidar(
-                os.path.join(args.out_dir, "lidar", f"{name}.png"),
-                lidar,
-                bboxes=bboxes,
-                labels=labels,
-                xlim=[cfg.point_cloud_range[d] for d in [0, 3]],
-                ylim=[cfg.point_cloud_range[d] for d in [1, 4]],
-                classes=cfg.object_classes,
-            )
-
-        if masks is not None:
-            visualize_map(
-                os.path.join(args.out_dir, "map", f"{name}.png"),
-                masks,
-                classes=cfg.map_classes,
-            )
-
-
-if __name__ == "__main__":
-    main()
+    # 其余代码与原版一致...
 
 ```
 
@@ -2014,20 +1123,6 @@ if __name__ == "__main__":
 
 ```python
 # projects/Meg_dataset/mmdet3d/core/visualize.py
-import copy
-import os
-from typing import List, Optional, Tuple
-
-import cv2
-import mmcv
-import numpy as np
-from matplotlib import pyplot as plt
-
-# from ..bbox import LiDARInstance3DBoxes
-from mmdet3d.core.bbox import LiDARInstance3DBoxes
-
-__all__ = ["visualize_camera", "visualize_lidar", "visualize_map"]
-
 
 OBJECT_PALETTE = {
     "car": (255, 158, 0),
@@ -2043,163 +1138,9 @@ OBJECT_PALETTE = {
     "tricycle": (220, 20, 60),  # 相比原版 mmdet3d 的 visualize 增加 tricycle
     "cyclist": (220, 20, 60)  # 相比原版 mmdet3d 的 visualize 增加 cyclist
 }
-
-MAP_PALETTE = {
-    "drivable_area": (166, 206, 227),
-    "road_segment": (31, 120, 180),
-    "road_block": (178, 223, 138),
-    "lane": (51, 160, 44),
-    "ped_crossing": (251, 154, 153),
-    "walkway": (227, 26, 28),
-    "stop_line": (253, 191, 111),
-    "carpark_area": (255, 127, 0),
-    "road_divider": (202, 178, 214),
-    "lane_divider": (106, 61, 154),
-    "divider": (106, 61, 154),
-}
+    # 其余代码与原版一致
 
 
-def visualize_camera(
-    fpath: str,
-    image: np.ndarray,
-    *,
-    bboxes: Optional[LiDARInstance3DBoxes] = None,
-    labels: Optional[np.ndarray] = None,
-    transform: Optional[np.ndarray] = None,
-    classes: Optional[List[str]] = None,
-    color: Optional[Tuple[int, int, int]] = None,
-    thickness: float = 4,
-) -> None:
-    canvas = image.copy()
-    canvas = cv2.cvtColor(canvas, cv2.COLOR_RGB2BGR)
-
-    if bboxes is not None and len(bboxes) > 0:
-        corners = bboxes.corners
-        num_bboxes = corners.shape[0]
-
-        coords = np.concatenate(
-            [corners.reshape(-1, 3), np.ones((num_bboxes * 8, 1))], axis=-1
-        )
-        transform = copy.deepcopy(transform).reshape(4, 4)
-        coords = coords @ transform.T
-        coords = coords.reshape(-1, 8, 4)
-
-        indices = np.all(coords[..., 2] > 0, axis=1)
-        coords = coords[indices]
-        labels = labels[indices]
-
-        indices = np.argsort(-np.min(coords[..., 2], axis=1))
-        coords = coords[indices]
-        labels = labels[indices]
-
-        coords = coords.reshape(-1, 4)
-        coords[:, 2] = np.clip(coords[:, 2], a_min=1e-5, a_max=1e5)
-        coords[:, 0] /= coords[:, 2]
-        coords[:, 1] /= coords[:, 2]
-
-        coords = coords[..., :2].reshape(-1, 8, 2)
-        for index in range(coords.shape[0]):
-            name = classes[labels[index]]
-            for start, end in [
-                (0, 1),
-                (0, 3),
-                (0, 4),
-                (1, 2),
-                (1, 5),
-                (3, 2),
-                (3, 7),
-                (4, 5),
-                (4, 7),
-                (2, 6),
-                (5, 6),
-                (6, 7),
-            ]:
-                cv2.line(
-                    canvas,
-                    coords[index, start].astype(np.int),
-                    coords[index, end].astype(np.int),
-                    color or OBJECT_PALETTE[name],
-                    thickness,
-                    cv2.LINE_AA,
-                )
-        canvas = canvas.astype(np.uint8)
-    canvas = cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB)
-
-    mmcv.mkdir_or_exist(os.path.dirname(fpath))
-    mmcv.imwrite(canvas, fpath)
-
-
-def visualize_lidar(
-    fpath: str,
-    lidar: Optional[np.ndarray] = None,
-    *,
-    bboxes: Optional[LiDARInstance3DBoxes] = None,
-    labels: Optional[np.ndarray] = None,
-    classes: Optional[List[str]] = None,
-    xlim: Tuple[float, float] = (-50, 50),
-    ylim: Tuple[float, float] = (-50, 50),
-    color: Optional[Tuple[int, int, int]] = None,
-    radius: float = 15,
-    thickness: float = 25,
-) -> None:
-    fig = plt.figure(figsize=(xlim[1] - xlim[0], ylim[1] - ylim[0]))
-
-    ax = plt.gca()
-    ax.set_xlim(*xlim)
-    ax.set_ylim(*ylim)
-    ax.set_aspect(1)
-    ax.set_axis_off()
-
-    if lidar is not None:
-        plt.scatter(
-            lidar[:, 0],
-            lidar[:, 1],
-            s=radius,
-            c="white",
-        )
-
-    if bboxes is not None and len(bboxes) > 0:
-        coords = bboxes.corners[:, [0, 3, 7, 4, 0], :2]
-        for index in range(coords.shape[0]):
-            name = classes[labels[index]]
-            plt.plot(
-                coords[index, :, 0],
-                coords[index, :, 1],
-                linewidth=thickness,
-                color=np.array(color or OBJECT_PALETTE[name]) / 255,
-            )
-
-    mmcv.mkdir_or_exist(os.path.dirname(fpath))
-    fig.savefig(
-        fpath,
-        dpi=10,
-        facecolor="black",
-        format="png",
-        bbox_inches="tight",
-        pad_inches=0,
-    )
-    plt.close()
-
-
-def visualize_map(
-    fpath: str,
-    masks: np.ndarray,
-    *,
-    classes: List[str],
-    background: Tuple[int, int, int] = (240, 240, 240),
-) -> None:
-    assert masks.dtype == np.bool, masks.dtype
-
-    canvas = np.zeros((*masks.shape[-2:], 3), dtype=np.uint8)
-    canvas[:] = background
-
-    for k, name in enumerate(classes):
-        if name in MAP_PALETTE:
-            canvas[masks[k], :] = MAP_PALETTE[name]
-    canvas = cv2.cvtColor(canvas, cv2.COLOR_RGB2BGR)
-
-    mmcv.mkdir_or_exist(os.path.dirname(fpath))
-    mmcv.imwrite(canvas, fpath)
 
 ```
 
@@ -2232,237 +1173,18 @@ sh projects/Meg_dataset/bash_runner/vis.sh
 与 4.1.小节一样，需要修改一些 config 读取相关的代码。
 
 ```python
-import argparse
-import copy
-import os
-import warnings
-
-import mmcv
-import torch
-from torchpack.utils.config import configs
-from torchpack import distributed as dist
-from mmcv import Config, DictAction
-from mmcv.cnn import fuse_conv_bn
-from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
-from mmcv.runner import get_dist_info, init_dist, load_checkpoint, wrap_fp16_model
-from mmdet3d.apis import single_gpu_test
-from mmdet3d.datasets import build_dataloader, build_dataset
-from mmdet3d.models import build_model
-from mmdet.apis import multi_gpu_test, set_random_seed
-from mmdet.datasets import replace_ImageToTensor
-from mmdet3d.utils import recursive_eval
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(description="MMDet test (and eval) a model")
-    parser.add_argument("config", help="test config file path")
-    parser.add_argument("checkpoint", help="checkpoint file")
-    parser.add_argument("--out", help="output result file in pickle format")
-    parser.add_argument(
-        "--fuse-conv-bn",
-        action="store_true",
-        help="Whether to fuse conv and bn, this will slightly increase"
-        "the inference speed",
-    )
-    parser.add_argument(
-        "--format-only",
-        action="store_true",
-        help="Format the output results without perform evaluation. It is"
-        "useful when you want to format the result to a specific format and "
-        "submit it to the test server",
-    )
-    parser.add_argument(
-        "--eval",
-        type=str,
-        nargs="+",
-        help='evaluation metrics, which depends on the dataset, e.g., "bbox",'
-        ' "segm", "proposal" for COCO, and "mAP", "recall" for PASCAL VOC',
-    )
-    parser.add_argument("--show", action="store_true", help="show results")
-    parser.add_argument("--show-dir", help="directory where results will be saved")
-    parser.add_argument(
-        "--gpu-collect",
-        action="store_true",
-        help="whether to use gpu to collect results.",
-    )
-    parser.add_argument(
-        "--tmpdir",
-        help="tmp directory used for collecting results from multiple "
-        "workers, available when gpu-collect is not specified",
-    )
-    parser.add_argument("--seed", type=int, default=0, help="random seed")
-    parser.add_argument(
-        "--deterministic",
-        action="store_true",
-        help="whether to set deterministic options for CUDNN backend.",
-    )
-    parser.add_argument(
-        "--cfg-options",
-        nargs="+",
-        action=DictAction,
-        help="override some settings in the used config, the key-value pair "
-        "in xxx=yyy format will be merged into config file. If the value to "
-        'be overwritten is a list, it should be like key="[a,b]" or key=a,b '
-        'It also allows nested list/tuple values, e.g. key="[(a,b),(c,d)]" '
-        "Note that the quotation marks are necessary and that no white space "
-        "is allowed.",
-    )
-    parser.add_argument(
-        "--options",
-        nargs="+",
-        action=DictAction,
-        help="custom options for evaluation, the key-value pair in xxx=yyy "
-        "format will be kwargs for dataset.evaluate() function (deprecate), "
-        "change to --eval-options instead.",
-    )
-    parser.add_argument(
-        "--eval-options",
-        nargs="+",
-        action=DictAction,
-        help="custom options for evaluation, the key-value pair in xxx=yyy "
-        "format will be kwargs for dataset.evaluate() function",
-    )
-    parser.add_argument(
-        "--launcher",
-        choices=["none", "pytorch", "slurm", "mpi"],
-        default="none",
-        help="job launcher",
-    )
-    parser.add_argument("--local_rank", type=int, default=0)
-    args = parser.parse_args()
-    if "LOCAL_RANK" not in os.environ:
-        os.environ["LOCAL_RANK"] = str(args.local_rank)
-
-    if args.options and args.eval_options:
-        raise ValueError(
-            "--options and --eval-options cannot be both specified, "
-            "--options is deprecated in favor of --eval-options"
-        )
-    if args.options:
-        warnings.warn("--options is deprecated in favor of --eval-options")
-        args.eval_options = args.options
-    return args
+# projects/Meg_dataset/tools/test.py
+# 其余代码与原版一致...
 
 
 def main():
-    args = parse_args()
-    dist.init()
-
-    torch.backends.cudnn.benchmark = True
-    torch.cuda.set_device(dist.local_rank())
-
-    assert args.out or args.eval or args.format_only or args.show or args.show_dir, (
-        "Please specify at least one operation (save/eval/format/show the "
-        'results / save the results) with the argument "--out", "--eval"'
-        ', "--format-only", "--show" or "--show-dir"'
-    )
-
-    if args.eval and args.format_only:
-        raise ValueError("--eval and --format_only cannot be both specified")
-
-    if args.out is not None and not args.out.endswith((".pkl", ".pickle")):
-        raise ValueError("The output file must be a pkl file.")
+    # 其余代码与原版一致...
 
     # configs.load(args.config, recursive=True)
     # cfg = Config(recursive_eval(configs), filename=args.config)
     cfg = Config.fromfile(args.config)
     print(cfg)
-
-    if args.cfg_options is not None:
-        cfg.merge_from_dict(args.cfg_options)
-    # set cudnn_benchmark
-    if cfg.get("cudnn_benchmark", False):
-        torch.backends.cudnn.benchmark = True
-
-    cfg.model.pretrained = None
-    # in case the test dataset is concatenated
-    samples_per_gpu = 1
-    if isinstance(cfg.data.test, dict):
-        cfg.data.test.test_mode = True
-        samples_per_gpu = cfg.data.test.pop("samples_per_gpu", 1)
-        if samples_per_gpu > 1:
-            # Replace 'ImageToTensor' to 'DefaultFormatBundle'
-            cfg.data.test.pipeline = replace_ImageToTensor(cfg.data.test.pipeline)
-    elif isinstance(cfg.data.test, list):
-        for ds_cfg in cfg.data.test:
-            ds_cfg.test_mode = True
-        samples_per_gpu = max(
-            [ds_cfg.pop("samples_per_gpu", 1) for ds_cfg in cfg.data.test]
-        )
-        if samples_per_gpu > 1:
-            for ds_cfg in cfg.data.test:
-                ds_cfg.pipeline = replace_ImageToTensor(ds_cfg.pipeline)
-
-    # init distributed env first, since logger depends on the dist info.
-    distributed = True
-
-    # set random seeds
-    if args.seed is not None:
-        set_random_seed(args.seed, deterministic=args.deterministic)
-
-    # build the dataloader
-    dataset = build_dataset(cfg.data.test)
-    data_loader = build_dataloader(
-        dataset,
-        samples_per_gpu=samples_per_gpu,
-        workers_per_gpu=cfg.data.workers_per_gpu,
-        dist=distributed,
-        shuffle=False,
-    )
-
-    # build the model and load checkpoint
-    cfg.model.train_cfg = None
-    model = build_model(cfg.model, test_cfg=cfg.get("test_cfg"))
-    fp16_cfg = cfg.get("fp16", None)
-    if fp16_cfg is not None:
-        wrap_fp16_model(model)
-    checkpoint = load_checkpoint(model, args.checkpoint, map_location="cpu")
-    if args.fuse_conv_bn:
-        model = fuse_conv_bn(model)
-    # old versions did not save class info in checkpoints, this walkaround is
-    # for backward compatibility
-    if "CLASSES" in checkpoint.get("meta", {}):
-        model.CLASSES = checkpoint["meta"]["CLASSES"]
-    else:
-        model.CLASSES = dataset.CLASSES
-
-    if not distributed:
-        model = MMDataParallel(model, device_ids=[0])
-        outputs = single_gpu_test(model, data_loader)
-    else:
-        model = MMDistributedDataParallel(
-            model.cuda(),
-            device_ids=[torch.cuda.current_device()],
-            broadcast_buffers=False,
-        )
-        outputs = multi_gpu_test(model, data_loader, args.tmpdir, args.gpu_collect)
-
-    rank, _ = get_dist_info()
-    if rank == 0:
-        if args.out:
-            print(f"\nwriting results to {args.out}")
-            mmcv.dump(outputs, args.out)
-        kwargs = {} if args.eval_options is None else args.eval_options
-        if args.format_only:
-            dataset.format_results(outputs, **kwargs)
-        if args.eval:
-            eval_kwargs = cfg.get("evaluation", {}).copy()
-            # hard-code way to remove EvalHook args
-            for key in [
-                "interval",
-                "tmpdir",
-                "start",
-                "gpu_collect",
-                "save_best",
-                "rule",
-            ]:
-                eval_kwargs.pop(key, None)
-            eval_kwargs.update(dict(metric=args.eval, **kwargs))
-            print(dataset.evaluate(outputs, **eval_kwargs))
-
-
-if __name__ == "__main__":
-    main()
+    # 其余代码与原版一致...
 
 ```
 
@@ -2647,4 +1369,5 @@ sh projects/Meg_dataset/bash_runner/test.sh
 
 ## 日期
 
-2023/06/26：创作日期
+* 2024/01/05：删除部分代码并添加注释
+* 2023/06/26：创作日期
