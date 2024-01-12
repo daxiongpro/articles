@@ -15,7 +15,7 @@
 
 **十月**
 
-* [环境调试——UniAD](2023_10/code_uniad/code_uniad.md)
+* [环境调试——UniAD](2023_10/env_uniad/env_uniad.md)
 * [羽毛球比赛](2023_10/badminton/rules.md)
 
 **九月**
