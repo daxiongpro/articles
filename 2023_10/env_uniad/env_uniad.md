@@ -55,14 +55,22 @@ Traceback (most recent call last):
 KeyError: 'traj'
 ```
 
-A：先运行
+A：
+
+方案1：先运行
 
 ```
 ./tools/uniad_dist_eval.sh ./projects/configs/stage2_e2e/base_e2e.py ./ckpts/uniad_base_e2e.pth 4
 ```
 
+方案2：
+
+* 在 `visualize/run.py` 注释掉 traj 相关部分
+* `render_cfg` 除了 `with_pred_box`，其他都改成 False
+
 ## 时间
 
+* 2024/01/12：增加问题1 的可视化方式
 * 2023/11/15：增加 flash-attn
 * 2023/11/09：更改格式更清楚
 * 2023/10/27：环境安装章节
