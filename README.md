@@ -54,7 +54,7 @@
 * [rosmsg 之 Pointcloud2 与 numpy 的相互转换](2023_05/rosmsg_numpy_transfer/rosmsg_numpy_transfer.md)
 * [ros 接收点云消息（python）](2023_05/ros1_receive_pointcloud_msgs/ros1_receive_pointcloud_msgs.md)
 * [使用 mmdet3d 框架训练自定义数据集](2023_05/train_self_dataset_using_mmdet3d/train_self_dataset_using_mmdet3d.md)
-* [vscode 相关问题](2023_05/vscode_debug/vscode_debug.md)
+* [vscode 相关问题](2023_05/vscode/vscode.md)
 * [国内外自动驾驶研究团队收集资料](2023_05/domestic_autonomous_driving_research_team/domestic_autonomous_driving_research_team.md)
 * [open3d 显示 pointcloud 和 bbox](2023_05/show_pointcloud/show_pointcloud_and_bbox.md)
 * [使用 python 解析 pcd 文件](2023_05/read_pcd_file/read_pcd_file.md)
