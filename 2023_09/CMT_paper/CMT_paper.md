@@ -28,7 +28,7 @@ CMT的优点如下：
 
 #### image 坐标编码
 
-这部分与 PETR 类似。在[论文解读——PERT](2023_09/PETR_paper/PETR_paper.md) 已有介绍，这里再详细讲解一下公式。图像首先经过 backbone，得到特征图。这里的 backbone 可以是 ResNet，也可以是 VoVNet。本文特征图的大小为 (BN, C, H, W) = (batch_size * 6, 256, 40, 100)。在 3D 位置编码阶段，feature map 上的每个像素都有 d 个深度点，这些点可以表示为：
+这部分与 PETR 类似。在[论文解读——PERT](../PETR_paper/PETR_paper.md) 已有介绍，这里再详细讲解一下公式。图像首先经过 backbone，得到特征图。这里的 backbone 可以是 ResNet，也可以是 VoVNet。本文特征图的大小为 (BN, C, H, W) = (batch_size * 6, 256, 40, 100)。在 3D 位置编码阶段，feature map 上的每个像素都有 d 个深度点，这些点可以表示为：
 
 $$
 {p_k (u, v) = (u ∗ d_k , v ∗ d_k , d_k , 1)^T , k = 1, 2, ..., d}
