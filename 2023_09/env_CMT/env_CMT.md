@@ -1,12 +1,8 @@
 # 环境调试——CMT：Cross Modal Transformer
 
-CMT 的官方源代码已经在 [github](https://github.com/junjie18/CMT) 上发布。其源码也是基于 mmdet3d 框架。根据官方 README，笔者也测试了其在 nuscenes 上的精度，与论文所述一致。
+CMT 的官方源代码已经在 [github](https://github.com/junjie18/CMT) 上发布。其源码也是基于 mmdet3d 框架。根据官方 README，笔者也测试了其在 nuscenes 上的精度，与论文所述一致。本文记录笔者将官方源代码跑通过程。新手小白可能不太会 mmdet3d。笔者来个保姆级教程。建议完整看完本文，再动手实践，而不是边看边实践。
 
-## 官方源代码跑通(test 部分)
-
-新手小白可能不太会 mmdet3d。笔者来个保姆级教程。建议完整看完本文，再动手实践，而不是边看边实践。
-
-## 安装环境
+## 1.安装环境
 
 * 新建 conda 环境
 
@@ -42,7 +38,7 @@ pip install numpy==1.22.4
 >
 > 注意：在安装环境之前删除所有 pip 缓存包 `rm -rf ~/.cache/pip` 。
 
-## 数据集准备
+## 2.数据集准备
 
 在 CMT 根目录下：
 
@@ -54,11 +50,7 @@ cd ..
 
 > 上述代码将 nuscenes 数据集软连接到项目中。修改 `/path/to/your/nuscenes/dataset/root/` 为你自己的 nuscenes 数据集在磁盘中的路径。
 
-## 运行代码
-
-官方作者使用的是分布式运行，即 `dist_train.py` 和 `dist_test.py`。分布式笔者暂时还不是很熟悉，不太会用。因此，笔者自己写了 `create_data.py` 和 `test.py` 的运行脚本。如果需要训练，也与之类似。
-
-## 数据预处理
+## 3.数据预处理
 
 修改原作者的 create_data.sh，编写数据预处理脚本，然后运行之。
 
@@ -66,7 +58,7 @@ cd ..
 # create_data.sh
 CREATE_DATA='tools/create_data.py'
 DATASET_NAME='nuscenes'
-ROOT_PATH_PROJ='/path/to/your/cmt/root'
+ROOT_PATH_PROJ=$(pwd)
 ROOT_PATH="--root-path ${ROOT_PATH_PROJ}/data/nuscenes"
 OUT_DIR="--out-dir ${ROOT_PATH_PROJ}/data/nuscenes"
 EXTRA_TAG='--extra-tag nuscenes'
@@ -75,14 +67,16 @@ VERSION='--version v1.0'
 python ${CREATE_DATA} ${DATASET_NAME} ${ROOT_PATH} ${OUT_DIR} ${EXTRA_TAG} ${VERSION}
 ```
 
+上述代码会生成 pkl。当然你也可以省略这一步骤，直接下载 pkl，作者在其 github 也提供了这些 pkl 的下载地址。
+
 > nuscenes 全集数据量巨大，数据预处理需要好几个小时。建议下班前跑起来，第二天早上处理完成。需要注意的是，数据预处理前，硬盘要腾出 100 个 G，不然磁盘容量不够，第二天一看白做。
 
-## 下载 ckpt
+## 4.下载 ckpt
 
-* 新建文件夹：ckpt
-* 根据[官方 README](https://github.com/junjie18/CMT)，下载 pth 权重，放到 ckpt 文件夹
+* 新建文件夹：ckpts
+* 根据[官方 README](https://github.com/junjie18/CMT)，下载 pth 权重，放到 ckpts 文件夹
 
-## 测试数据
+## 5.测试数据
 
 编写测试脚本，然后运行之。
 
@@ -96,9 +90,11 @@ python ${TEST_PY} ${CONFIG_FILE} ${PTH} --eval bbox
 
 > 不出意外可以看到测试效果，精度如原作者所述。
 
-## 解决遇到的 bug
+![1710313611141](image/env_CMT/mAP.png)
 
-* SystemError: initialization of _internal failed without raising an exception
+## 6.测试时 bug
+
+1.SystemError: initialization of _internal failed without raising an exception
 
 解决：重装 numba 库：
 
@@ -106,7 +102,7 @@ python ${TEST_PY} ${CONFIG_FILE} ${PTH} --eval bbox
 pip install -U numba  -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
-* ModuleNotFoundError: No module named 'projects'
+2.ModuleNotFoundError: No module named 'projects'
 
 解决：找不到 projects 包的原因是因为没有配置 python path。在 from projects.mmdet3d_plugin.datasets import CustomNuScenesDataset 之前插入代码：
 
@@ -116,6 +112,42 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 print(sys.path)
 ```
 
+## 7.训练时 bug
+
+1.找不到文件路径
+
+```
+FileNotFoundError: [Errno 2] No such file or directory: 'nuscenes_gt_database/pts_dir/3d6241b0262d4ab98147a98c80656aa0_truck_20.bin'
+```
+
+解决：根据 [issue](https://github.com/junjie18/CMT/issues/21): 将 nuscenes_gt_database 软连接到项目根目录。
+
+```
+ln -s ./data/nuscenes/nuscenes_gt_database ./
+```
+
+2.OOM(CUDA OUT OF MERMORY)。参考 [issue](https://github.com/junjie18/CMT/issues/37)。
+
+解决：作者给了两个配置文件，一个是使用 VOV 作为 backbone；另一个是使用 Resnet 作为 backbone。在 RTX 3090 上，使用 VOV 的配置文件会出现 OOM，但如果 batch_size 改为 1(原作者是2)的话，会有其它 bug。因此，使用 Resnet 作为 backbone 的配置文件。
+
+```bash
+TRAIN_PY='tools/train.py'
+# CONFIG_FILE='projects/configs/fusion/cmt_voxel0075_vov_1600x640_cbgs.py'  # OOM on RTX 3090 with batch_size=2
+CONFIG_FILE='projects/configs/fusion/cmt_voxel0100_r50_800x320_cbgs.py'
+DEBUG_PY='-m debugpy --listen 8531 --wait-for-client'
+GPU_NUM=8
+
+# 多卡训练
+bash tools/dist_train.sh ${CONFIG_FILE} ${GPU_NUM}
+```
+
+3.No kernel images ...
+
+[环境调试——UniAD](../../2023_10/env_uniad/env_uniad.md) 一文中也有这个问题。本地环境调试成功，但将 conda 环境上传之后会有这个问题。
+
+解决：环境重新上传，或者将报错的包一个个上传重新安装。
+
 ## 日期
 
-2023/09/18：文章撰写日期
+* 2024/03/13：训练时 bug
+* 2023/09/18：文章撰写日期
