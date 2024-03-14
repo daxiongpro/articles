@@ -143,9 +143,19 @@ bash tools/dist_train.sh ${CONFIG_FILE} ${GPU_NUM}
 
 3.No kernel images ...
 
-[环境调试——UniAD](../../2023_10/env_uniad/env_uniad.md) 一文中也有这个问题。本地环境调试成功，但将 conda 环境上传之后会有这个问题。
+思路：[环境调试——UniAD](../../2023_10/env_uniad/env_uniad.md) 一文中也有这个问题。本地环境调试成功，但将 conda 环境上传之后会有这个问题。这里仍旧是 mmcv-full 的问题，需要将 mmcv-full 重新安装。
 
-解决：环境重新上传，或者将报错的包一个个上传重新安装。
+解决：环境重新上传。注意：下载 mmcv-full 的 whl 文件时候，不能直接从网上下载 whl，需要按照以下步骤：
+
+* 进入本地已经安装好的 conda 环境
+* 输入下载 whl 的命令：
+
+  ```bash
+  pip download mmcv-full==1.6.0 -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.9.0/index.html --no-deps -d .
+  ```
+* 将下载好的 whl 文件上传
+* 服务器卸载原有的 mmcv-full
+* 服务器从 whl 安装 mmcv-full
 
 ## 日期
 
