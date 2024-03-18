@@ -3,7 +3,7 @@
 
 ## 1.环境安装
 
-1.1.复制以下环境到项目根目录，文件名"requirement.txt"。这环境是由[BEVFusion（北大&amp;阿里）环境搭建教程](https://blog.csdn.net/u014295602/article/details/127933607) 的作者导出，我再根据之前的文章[离线安装 python 库](../../2023_11/pkg_install_offline/pkg_install_offline.md) 使用 python 导出。
+1.1.复制以下环境到项目根目录，文件名"requirement.txt"。这环境是由[BEVFusion（北大&amp;阿里）环境搭建教程](https://blog.csdn.net/u014295602/article/details/127933607) 的作者导出，我再根据之前的文章[离线安装 python 库](../../2023_11/pkg_install_offline/pkg_install_offline.md)，使用 python 导出。
 
 ```bash
 # requirement.txt
@@ -195,7 +195,48 @@ pip install -r requirement.txt
 
 ## 2.数据预处理
 
+将 nuscenes 数据预处理成 pkl 格式：
 
+```bash
+python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
+```
+
+但是回报错：找不到 can_bus_root_path 变量。
+
+原因：EA-LSS 作者在 BEVFuison 上改了代码，但是有 bug。
+
+解决方法：
+
+1.从 nuscenes 官网下载 can_bus 信息，添加到 `data/nuscenes` 目录下，完成之后 `data/` 目录结构为：
+
+```bash
+nuscenes/
+├── can_bus
+├── maps
+├── samples
+├── sweeps
+└── v1.0-trainval
+```
+
+2.修改 `create_data.py`，将
+
+```python
+    nuscenes_converter.create_nuscenes_infos(
+        root_path, info_prefix, version=version, max_sweeps=max_sweeps)
+```
+
+改为：
+
+```python
+    nuscenes_converter.create_nuscenes_infos(
+        root_path, root_path, info_prefix, version=version, max_sweeps=max_sweeps)
+```
+
+其中，`root_path` 指向 `data/nuscenes/`。
+
+## 3.模型训练
+
+按照 [EA-LSS 官方 README](https://github.com/hht1996ok/EA-LSS)。
 
 ## 参考资料
 
