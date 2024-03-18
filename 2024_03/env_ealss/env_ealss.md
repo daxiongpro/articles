@@ -1,4 +1,3 @@
-
 # 环境调试——EA-LSS
 
 ## 1.环境安装
@@ -201,7 +200,7 @@ pip install -r requirement.txt
 python tools/create_data.py nuscenes --root-path ./data/nuscenes --out-dir ./data/nuscenes --extra-tag nuscenes
 ```
 
-但是回报错：找不到 can_bus_root_path 变量。
+但是会报错：找不到 can_bus_root_path 变量。
 
 原因：EA-LSS 作者在 BEVFuison 上改了代码，但是有 bug。
 
