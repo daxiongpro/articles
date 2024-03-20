@@ -12,7 +12,7 @@
 
 ## 图像去畸变
 
-参考前文：[Python 图像去畸变](2023_08/img_distort/img_distort.md)
+参考前文：[Python 图像去畸变](../img_distort/img_distort.md)
 
 ## 坐标系转换
 
