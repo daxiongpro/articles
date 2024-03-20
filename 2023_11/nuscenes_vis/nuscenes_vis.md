@@ -302,7 +302,7 @@ def combine_all(path_dict, combine_save_path):
 
 ## 效果图：
 
-![combine]()
+![combine](./combine.png)
 
 # 日期
 
