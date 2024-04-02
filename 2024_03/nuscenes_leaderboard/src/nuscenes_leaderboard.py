@@ -14,11 +14,14 @@ class NusLeaderBoard:
     根据年份、传感器模态过滤
     """
 
-    def __init__(self, detection_url) -> None:
-        self.detection_url = detection_url  # "https://nuscenes.org/detection.json"
-        self.json_data = self.get_detection_json()
+    def __init__(self) -> None:
+        self.detection_url = "https://nuscenes.org/detection.json"
+        self.json_data = self._crawling_detection_json()
 
-    def get_detection_json(self):
+    def get_json_data(self):
+        return self.json_data
+
+    def _crawling_detection_json(self):
         """
         抓取 Nuscenes 3D Object Detection 榜单数据
         """
@@ -49,21 +52,20 @@ class NusLeaderBoard:
         if key == "Date":
             self.json_data = sorted(
                 self.json_data,
-                key=lambda x: self._parse_datetime(x["meta"]["submit_meta"][
-                    "submitted_at"]),
+                key=lambda x: self._parse_datetime(x["meta"]["submit_meta"]["submitted_at"]),
                 reverse=reverse)
         else:
             self.json_data = sorted(
                 self.json_data,
                 key=lambda x: x["result"][0]["test_split"][key],
                 reverse=reverse)
+        return self.json_data
 
     def export2excel(self, json_data=None, output_path='output.xlsx'):
         data = []
         for method in json_data:
             method_name = method['meta']['submit_meta']["method_name"]
-            method_description_en = method['meta']['submit_meta'][
-                "method_description"]
+            method_description_en = method['meta']['submit_meta']["method_description"]
             # method_description_cn = translator.translate(method_description_en, src='en', dest='zh-cn')
             data.append([method_name, method_description_en])
         df = pd.DataFrame(data, columns=['method_name', 'method_description'])
@@ -72,6 +74,7 @@ class NusLeaderBoard:
 
 
 if __name__ == '__main__':
-    nlb = NusLeaderBoard("https://nuscenes.org/detection.json")
+    nlb = NusLeaderBoard()
     nlb.sort(key="NDS")
-    nlb.export2excel(nlb.json_data, 'output.xlsx')
+    json_data = nlb.get_json_data()
+    nlb.export2excel(json_data, 'output.xlsx')
