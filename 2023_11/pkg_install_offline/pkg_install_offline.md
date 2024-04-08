@@ -2,9 +2,11 @@
 
 在一些服务器上，我们搭建完Python环境之后，因为服务器的网络限制原因，不能直接通过pip命令下载安装Python的依赖包。
 
-本文我们以安装 spconv-cu111 库为例，介绍如何在服务器离线安装 python 库。
+本文我们以安装 spconv-cu111 库为例，介绍如何在服务器离线安装 python 库。介绍两种方法，推荐方法二。
 
-## 1.查看依赖库并导出
+## 方法一
+
+### 1.查看依赖库并导出
 
 1.1.查看 spconv-cu111 的依赖库以及版本，使用以下命令：
 
@@ -132,7 +134,7 @@ spconv-cu111==2.1.21
 └── pybind11 [required: >=2.6.0, installed: 2.11.1]
 ```
 
-## 2.修改 requirements.txt 格式
+### 2.修改 requirements.txt 格式
 
 使用以下 python 脚本：
 
@@ -227,7 +229,7 @@ pybind11==2.11.1
 └── requirements.txt
 ```
 
-## 3.下载依赖包
+### 3.下载依赖包
 
 在当前目录(/path/to/your/pkgs)下：
 
@@ -246,7 +248,7 @@ pip download -r requirements.txt -d packages/ -i https://pypi.tuna.tsinghua.edu.
 └── requirements.txt
 ```
 
-## 4.安装依赖包
+### 4.安装依赖包
 
 将当前目录(/path/to/your/pkgs)打包上传到云端，并解压缩，进入当前目录。运行：
 
@@ -258,6 +260,21 @@ pip install --no-index --find-links=./packages -r ./requirements.txt
 
 > 参考资料：[Python之离线安装第三方库（依赖包）](https://blog.csdn.net/bilibalasha/article/details/129155752)
 
+## 方法二
+
+直接下载这个包以及依赖包：
+
+```bash
+pip download pip install waymo-open-dataset-tf-2-4-0==1.4.1 -d .
+```
+
+上述代码下载了 waymo-open-dataset 以及其依赖包到当前文件夹，然后上传到服务器，进入该目录并安装：
+
+```
+pip install ./*
+```
+
 # 日期
 
-2023/11/16：文章撰写日期
+* 2024/04/08：更新方法二
+* 2023/11/16：文章撰写日期
