@@ -49,3 +49,7 @@
 结果：NDS=0.7346
 
 ![1712731226518](image/eval_models/nuscnes_big_dal_base.png)
+
+## 日期
+
+* 2024/04/10：DAL-base 测试结果
