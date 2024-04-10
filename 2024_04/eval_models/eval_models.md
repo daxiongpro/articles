@@ -31,7 +31,7 @@
 配置参数：
 
 * 数据集：nuscnes-mini
-* model：DAL-base
+* model：dak-base.py
 * pth 来源：官方
 * 测试 gpu：1*3090
 
@@ -42,7 +42,7 @@
 配置参数：
 
 * 数据集：nuscnes-big
-* model：DAL-base
+* model：dal-base.py
 * pth 来源：官方
 * 测试 gpu：8*A100
 
@@ -50,6 +50,17 @@
 
 ![1712731226518](image/eval_models/nuscnes_big_dal_base.png)
 
+配置参数：
+
+* 数据集：nuscnes-big
+* model：dal-large.py
+* pth 来源：官方
+* 测试 gpu：8*A100
+
+结果：NDS=0.7396
+
+![1712733954780](image/eval_models/nuscnes_big_dal_large.png)
+
 ## 日期
 
-* 2024/04/10：DAL-base 测试结果
+* 2024/04/10：dal-base、dal-large 测试结果
