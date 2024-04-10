@@ -4,6 +4,10 @@
 
 ## 2024
 
+**四月**
+
+* [记录各种模型测试结果](2024_04/eval_models/eval_models.md)
+
 **三月**
 
 * [环境调试——EA-LSS](2024_03/env_ealss/env_ealss.md)
