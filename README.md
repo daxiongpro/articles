@@ -6,6 +6,7 @@
 
 **四月**
 
+* [论文解读——DAL](2024_04/paper_dal/paper_dal.md)
 * [记录各种模型测试结果](2024_04/eval_models/eval_models.md)
 
 **三月**
