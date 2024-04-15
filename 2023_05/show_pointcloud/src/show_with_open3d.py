@@ -112,9 +112,10 @@ def load_pointcloud(pts_filename):
 
 if __name__ == '__main__':
     index = 4
-    pts_filename = f'/home/daxiongpro/2tb/datasets/waymo-mini/kitti_format/training/velodyne/100000{index}.bin'
-    gt_filename = '/home/daxiongpro/2tb/datasets/waymo-mini/kitti_format/full_info/waymo_full_infos_val.pkl'
-    pred_filename = './result_bevfusion.pkl'
+    dataroot = '/home/daxiongpro/2tb/datasets/waymo-mini/kitti_format'
+    pts_filename = f'{dataroot}/training/velodyne/100000{index}.bin'
+    gt_filename = f'{dataroot}/full_info/waymo_full_infos_val.pkl'
+    pred_filename = f'/home/daxiongpro/code/articles/result_bevfusion.pkl'
 
     points = load_pointcloud(pts_filename)
     gt_results = mmcv.load(gt_filename)
