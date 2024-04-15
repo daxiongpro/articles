@@ -61,6 +61,18 @@
 
 ![1712733954780](image/eval_models/nuscnes_big_dal_large.png)
 
+配置参数：
+
+* 数据集：nuscnes-big
+* model：dal-large.py
+* pth 来源：官方的 dal-large 训练 20 个 epoch得到
+* 测试 gpu：8*A100
+
+结果：NDS=0.7453 (比官方权重效果好，惊喜)
+
+![1713145171421](image/eval_models/nuscenes_big_dal_large_epoch20.png)
+
 ## 日期
 
+* 2024/04/15：dal-large 按照官方训练 20 个 epoch 后测试结果
 * 2024/04/10：dal-base、dal-large 测试结果
