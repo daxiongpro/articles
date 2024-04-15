@@ -1,90 +1,3 @@
-# open3d
-
-使用 open3d 可视化点云、预测框、真值。可视化点云比较容易。主要是画框。首先介绍如何读取点云。然后介绍画框的两种方法。
-
-## 读取点云
-
-直接上代码。
-
-```python
-def load_pointcloud(pts_filename):
-    """
-    读取点云文件
-    返回 np.array, shape(N, 3)
-    """
-    # 加载点云
-    mmcv.check_file_exist(pts_filename)
-    if pts_filename.endswith('.npy'):
-        points = np.load(pts_filename)
-    else:
-        points = np.fromfile(pts_filename, dtype=np.float32)
-    # 转换点云格式
-    points = points.reshape(-1, 6)[:, [0, 1, 2]]
-    return points
-```
-
-## 画框方法一
-
-为了简便，可以使用 mmdetection3d api。
-
-```python
-import numpy as np
-import torch
-from mmengine.structures import InstanceData
-from mmdet3d.structures import (DepthInstance3DBoxes, Det3DDataSample)
-from mmdet3d.visualization import Det3DLocalVisualizer
-
-
-def show_data(points=np.random.rand(1000, 3), bbox=torch.rand((5, 7))):
-    """show point cloud data with openmmlab and open3d.
-
-    :param points: point clouds, defaults to np.random.rand(1000, 3)
-    :type points: numpy ndarray, optional
-    :param bbox: bounding boxes, (xzywlhr), defaults to torch.rand((5, 7))
-    :type bbox: numpy ndarray, optional
-    """
-    det3d_local_visualizer = Det3DLocalVisualizer()
-
-    # points = np.random.rand(1000, 3)
-
-    gt_instances_3d = InstanceData()
-    gt_instances_3d.bboxes_3d = DepthInstance3DBoxes(bbox)
-    # gt_instances_3d.labels_3d = torch.randint(0, 2, (5, ))
-
-    gt_det3d_data_sample = Det3DDataSample()
-    gt_det3d_data_sample.gt_instances_3d = gt_instances_3d
-
-    data_input = dict(points=points)
-
-    det3d_local_visualizer.add_datasample(
-        '3D Scene',
-        data_input,
-        gt_det3d_data_sample,
-        vis_task='lidar_det',
-        show=True)
-
-show_data()
-```
-
-使用时，将 points 和 bbox 换成自己的数据就行。
-
-> points 表示点云数据，数据格式为np.ndarray，结构为(N, d)。N 表示点的数量。D 表示维度，D >=3。当 D>3 时，会自动处理成 (N, 3)；
->
-> bbox 表示包围框，数据格式为 np.ndarray，结构为(N, 7)。N 表示包围框的数量。7 表示包围框的 7 个回归值，分别为：x,y,z,l,w,h,r。其中，xyz 表示包围框底边中心点的坐标，lwh 表示长宽高，r 表示包围框绕 z 轴的旋转角 yaw。
-
-运行代码，可视化结果如下：
-
-![pic1](./image/pic1.png "pic1")
-
-使用自己的数据集中的 points 和 bbox，可视化结果如下：
-
-![pic2](./image/pic2.png "pic2")
-
-## 画框方法二
-
-使用 open3d 手工绘制 bbox 的线条。
-
-```python
 
 import numpy as np
 import open3d
@@ -125,7 +38,7 @@ class Open3D_visualizer():
             print("请输入 green 或者 red。green 表示预测框，red 表示真值框。")
 
         all_bboxes = open3d.geometry.LineSet()
-        for bbox in bboxes:  
+        for bbox in bboxes:    
             corners_3d = self.compute_box_3d(bbox[0:3], bbox[3:6], bbox[6])
             o3d_bbox = open3d.geometry.LineSet()
             o3d_bbox.lines = open3d.utility.Vector2iVector(bbox_lines)
@@ -199,31 +112,15 @@ def load_pointcloud(pts_filename):
 
 if __name__ == '__main__':
     index = 4
-    pts_filename = f'/path/to/your/point/cloud/file.bin'
-    gt_filename = f'/path/to/your/gt/file.pkl'
-    pred_filename = f'/path/to/your/pred/file.pkl'
+    pts_filename = f'/home/daxiongpro/2tb/datasets/waymo-mini/kitti_format/training/velodyne/100000{index}.bin'
+    gt_filename = '/home/daxiongpro/2tb/datasets/waymo-mini/kitti_format/full_info/waymo_full_infos_val.pkl'
+    pred_filename = './result_bevfusion.pkl'
 
     points = load_pointcloud(pts_filename)
-    #  使用 mmcv.load 读取真值和预测框的 pkl，获取对应的 bboxes。bboxes 格式为 np.array，shape 为 (N, 3)
-    gt_bboxes = ...
-    pred_bboxes = ...
+    gt_results = mmcv.load(gt_filename)
+    pred_results = mmcv.load(pred_filename)  # 读文件花了 14 s
+    gt_bboxes = gt_results[index]['gt_boxes']
+    pred_bboxes = pred_results[index]['boxes_3d'].tensor.numpy()
+    
     o3dvis = Open3D_visualizer(points, gt_bboxes, pred_bboxes)
     o3dvis.show()
-
-```
-
-修改点云、bbox 的路径参数，读取点云、bbox。可视化结果如下：
-
-![pic3](./image/pic3.png "pic3")
-
-## 日期
-
-2024/04/15：新增读取点云数据、手工绘制 bbox(画框方法二)
-
-2023/05/11：更新
-
-* xyz 表示 bbox 底边中点
-* 注释代码中的 label
-* 增加数据集配图
-
-2023/05/10：创作日期
