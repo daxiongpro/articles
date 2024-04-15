@@ -65,7 +65,7 @@
 
 * 数据集：nuscnes-big
 * model：dal-large.py
-* pth 来源：官方的 dal-large 训练 20 个 epoch得到
+* pth 来源：官方的 dal-large 训练 20 个 epoch 得到(8*A100)
 * 测试 gpu：8*A100
 
 结果：NDS=0.7453 (比官方权重效果好，惊喜)
