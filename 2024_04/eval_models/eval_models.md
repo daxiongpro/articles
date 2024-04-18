@@ -96,8 +96,20 @@
 
 ![1713271853950](image/eval_models/nuscenes_big_deepinteraction_base.png)
 
+配置参数：
+
+* 数据集：nuscnes-big
+* model：Fusion_0075_refactor.py
+* pth 来源：官方 Fusion_0075_refactor.py 训练 6 个 epoch 得到(8*A100)
+* 测试 gpu：8*A100
+
+结果：NDS=0.7248
+
+![1713402633204](image/eval_models/nuscenes_big_deepinteraction_base_epoch6.png)
+
 ## 日期
 
+* 2024/04/18：DeepInteraction_base 按照官方训练 6 个 epoch 后测试结果
 * 2024/04/16：DeepInteraction_base 官方测试结果
 * 2024/04/15：dal-large 按照官方训练 20 个 epoch 后测试结果
 * 2024/04/10：dal-base、dal-large 测试结果
