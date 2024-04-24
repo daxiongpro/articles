@@ -31,7 +31,7 @@
 配置参数：
 
 * 数据集：nuscnes-mini
-* model：dak-base.py
+* model：dal-base.py
 * pth 来源：官方
 * 测试 gpu：1*3090
 
