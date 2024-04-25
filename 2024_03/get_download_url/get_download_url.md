@@ -12,7 +12,7 @@
 
 3.在 Filter 框输入你要下载的文件后缀 "json"。
 
-![nuscenes_web_2](https://file+.vscode-resource.vscode-cdn.net/home/daxiongpro/code/articles/2024_03/get_download_url/image/get_download_url/nuscenes_web_2.png)4.按 F5 刷新页面，此时你会看见好多 json 文件。
+![nuscenes_web_2](image/get_download_url/nuscenes_web_2.png)4.按 F5 刷新页面，此时你会看见好多 json 文件。
 
 ![1710399630575](image/get_download_url/nuscenes_web_3.png)
 
