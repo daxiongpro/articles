@@ -148,7 +148,7 @@ if __name__ == '__main__':
 
 `get_geometry` 函数：1.还原数据增强：由于图像进来之前作了数据增强，因此先要还原数据增强。2.从图像坐标系转换到需要的坐标系(ego 或 Lidar 坐标系，上述代码中是 Lidar 坐标系)。
 
-这样，就得到了 d*h*w 个点在 Lidar 坐标系下的 xyz 坐标。
+这样，就得到了 d\*h\*w 个点在 Lidar 坐标系下的 xyz 坐标。
 
 有人会问，每个点的深度只有一个值，怎么能在每个平面上都取点呢？
 
@@ -156,7 +156,25 @@ if __name__ == '__main__':
 
 ## 4.拍扁到 BEV
 
-TODO
+这个操作在 LSS 中叫做 Voxel Pooling，在 BEVDet 以及 BEVFusion 中叫做 BEVPool。先大致说下原理：首先，预设 BEV 空间为 H\*W\*L 个 Voxel。然后对于每个 Voxel，找之前 2D -> 3D 时 lift 的 d\*h\*w 个点中，属于这个 voxel 的点的特征向量全部加起来，作为这个 voxel 的特征向量。因为 voxel 是规则的，所以 voxel 到 bev 就很容易，方法和点云一样。
+
+LSS 的 Voxel Pooling 是用 python 写的，单线程，速度很慢、显存占用很高。BEVPool 将 Voxel Pooling 改写成 cuda 算子，对每个 voxel 的计算采用多线程。但还是太耗时、太耗显存，于是 BEVDet 的作者搞了个 BEVPoolv2，大大加速了此过程。
+
+![bev_pool_v2](image/paper_lss/bev_pool_v2.png)
+
+### 4.1.BEVPool 原理
+
+如上图左半部分。Feature 表示特征图，其形状为 NHWC，N 代表环视相机个数，Nuscenes 中为 6。Depth Score 表示预测的深度分布，NDHW 表示每个相机图像中，在 HW 位置包含 D 个深度值，这 D 个深度值是概率分布。
+
+Depth Score 和 Feature 相乘得到视锥体 Frustum Feature，大小为 NDHWC。Voxel Index 由相机内外参计算得到，形状为 NDHW，表示在 NDHW 位置的点属于 BEV 空间下哪个 Voxel。他俩可以得到一张 Voxel Index 到 Frustum Feature 的映射表。表的长度为图像特征点云的个数(这个值 <= NDHW，因为要过滤掉超出 voxel 空间的点)。将这个表按照 voxel index 排序排好，然后使用 cuda 多线程处理每个 voxel 特征。
+
+### 4.2.BEVPoolv2 原理
+
+BEVDet 的作者分析了 BEVPool 耗时和耗显存在与计算和存储大小为 NDHWC 的 Frustum Feature。因此提出 BEVPoolv2。
+
+如上图右半部分。BEVPoolv2 首先建立 Voxel Index 到 Frustum Index 的映射表(对比 BEVPool 是 Frustum Feature)。然后处理的时候根据 Frustum Index 到 Depth Score 和 Feature 去取相应的值。这样就不用计算和存储Frustum Feature，速度就快很多了。
+
+个人认为，上图中 BEVPoolv2 的映射表 Frustum Index 用字母表示不太好，用数字表示更好，可能作者是想区别于 Voxel Index 吧。
 
 ## 参考资料
 
@@ -165,4 +183,5 @@ TODO
 
 ## 日期
 
-2024/03/07：文章撰写日期
+* 2024/05/09：BEVPoolv2
+* 2024/03/07：文章撰写日期
