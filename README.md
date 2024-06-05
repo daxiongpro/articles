@@ -33,7 +33,6 @@
 **十月**
 
 * [环境调试——UniAD](2023_10/env_uniad/env_uniad.md)
-* [羽毛球比赛](2023_10/badminton/rules.md)
 
 **九月**
 
@@ -53,7 +52,6 @@
 * [多传感器同步——点云投影到图像](2023_08/point2img/point2img.md)
 * [Python 图像去畸变](2023_08/img_distort/img_distort.md)
 * [设计模式——工厂模式](2023_08/factory_pattern/factory_pattern.md)
-* [面试题整理汇总](2023_08/interview_Q_A/README.md)
 
 **七月**
 
