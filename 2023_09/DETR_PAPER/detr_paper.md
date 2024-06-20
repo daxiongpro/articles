@@ -28,13 +28,18 @@ DETR 全称 **DE**tection **TR**ansformer，是将 Transformer 引入目标检�
 
 #### encoder
 
-图片经过 CNN 得到的 feature map，可以将图片分割成一小块一小块，也就是一个个 patch。由于加上了 positional encoding，就可以将这些 patch 拉直成输入 transformer encoder 的 token。这些 token 经过 transformer encoder 就得到图片全局特征。
+encoder 部分称为 "self-attention"。图片经过 CNN 得到的 feature map，可以将图片分割成一小块一小块，也就是一个个 patch。由于加上了 positional encoding，就可以将这些 patch 拉直成输入 transformer encoder 的 token。这些 token 经过 transformer encoder 就得到图片全局特征。
 
 #### decoder
 
-前文说到，输入的 query 就是 positional encoder，其表示每一个 query 负责查询图片的某块区域。每一个 query 去全局特征 token 的 key 去匹配，查询有没有这个 query 想要的信息，如有，就将注意力关注这个 token。也可以将这些 query 理解为 anchor，只不过这些 anchor 都是可学习的向量，而不是像 anchor 一样定死的。
+decoder 部分成为 "cross-attention"。前文说到，输入的 query 就是 positional encoder，其表示每一个 query 负责查询图片的某块区域。每一个 query 去全局特征 token 的 key 去匹配，查询有没有这个 query 想要的信息，如有，就将注意力关注这个 token，并聚合(收集) 这个 token 的特征。也可以将这些 query 理解为 anchor，只不过这些 anchor 都是可学习的向量，而不是像 anchor 一样定死的。
 
 ### 参考资料
 
 * [b 站视频讲解——唐宇迪](https://www.bilibili.com/video/BV1R14y1N77a/?p=2&spm_id_from=pageDriver&vd_source=da7944bcc998e29818ec76ea9c6f1f47)
 * [b 站视频讲解——李沐](https://www.bilibili.com/video/BV1GB4y1X72R/?spm_id_from=333.337.search-card.all.click&vd_source=da7944bcc998e29818ec76ea9c6f1f47)
+
+## 日期
+
+* 2024/06/20：修改 decoder 部分解读
+* 2023/09/07：文章撰写日期
