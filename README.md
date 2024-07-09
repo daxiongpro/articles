@@ -4,6 +4,10 @@
 
 ## 2024
 
+**七月**
+
+* [常见问题汇总](2024_07/common_problems/common_problems.md)
+
 **四月**
 
 * [论文解读——DAL](2024_04/paper_dal/paper_dal.md)
