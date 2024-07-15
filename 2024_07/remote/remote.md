@@ -2,6 +2,7 @@
 
 * stackoverflow
 * remote.co
+* remoteOK
 * web3 career
 * glassdoor
 * indeed
@@ -14,3 +15,8 @@
 foreign company
 
 * 凯捷，信必优，tek
+
+
+rmb
+
+* payoneer
